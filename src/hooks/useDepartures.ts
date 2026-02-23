@@ -143,12 +143,14 @@ export function useDepartures({
     };
   }, [cacheKey, fetchDepartures]);
 
+  const refetch = useCallback(() => fetchDepartures(false), [fetchDepartures]);
+
   return {
     data,
     error,
     isLoading,
     isFetching,
     isFallback,
-    refetch: () => fetchDepartures(false),
+    refetch,
   };
 }

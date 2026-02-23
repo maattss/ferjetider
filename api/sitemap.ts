@@ -12,6 +12,9 @@ export default function handler(req: VercelRequest, res: VercelResponse): Vercel
 
   res.setHeader("Content-Type", "application/xml; charset=utf-8");
   res.setHeader("Cache-Control", "s-maxage=1800, stale-while-revalidate=86400");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Content-Security-Policy", "frame-ancestors 'none'");
 
   return res.status(200).send(xml);
 }
