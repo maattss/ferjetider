@@ -1,31 +1,42 @@
 # Ferjetider Bergen-Stavanger
 
-En enkel, mobilvennlig side for live ferjetider på:
+Rask, enkel og mobilvennlig ferjeside for strekningen Bergen-Stavanger.
+Bytt samband, velg retning, og få neste avgang med én gang.
 
-- Arsvågen ↔ Mortavika
-- Halhjem ↔ Sandvikvåg
+Live side: [https://ferjetider.vercel.app](https://ferjetider.vercel.app)
 
-## Teknologi
+## Hva denne siden gjør
+
+- Viser live avganger for `Arsvågen ↔ Mortavika`
+- Viser live avganger for `Halhjem ↔ Sandvikvåg`
+- Viser begge retninger på begge samband
+- Løfter frem neste avgang tydelig
+- Oppdaterer automatisk hvert 60. sekund
+- Faller tilbake til sist lagrede data hvis API-et er nede
+
+## Stack
 
 - React + Vite + TypeScript
-- Radix UI + shadcn/ui-komponenter
+- Radix UI + shadcn/ui
 - Tailwind CSS
-- Vercel serverless function (`/api/departures`) mot Entur GraphQL
-- Vercel Analytics for page views
+- Vercel Functions (`/api/departures`) mot Entur GraphQL
+- Vercel Analytics (page views)
 
-## Kom i gang
+## Kom i gang lokalt
+
+Installer avhengigheter:
 
 ```bash
 npm install
 ```
 
-Kjør frontend lokalt:
+Kjør appen:
 
 ```bash
 npm run dev
 ```
 
-Kjør både frontend + `/api` lokalt med Vercel:
+Kjør frontend + API lokalt via Vercel:
 
 ```bash
 npx vercel dev
@@ -33,15 +44,15 @@ npx vercel dev
 
 ## Environment
 
-Lag en `.env`-fil med:
+Opprett `.env`:
 
 ```bash
 ENTUR_CLIENT_NAME=ferjetider-app
 ```
 
-Hvis variabelen mangler brukes samme verdi som default.
+Hvis den mangler brukes `ferjetider-app` som default.
 
-## Bygg og test
+## Kvalitetssjekk
 
 ```bash
 npm run typecheck
@@ -49,27 +60,37 @@ npm run test
 npm run build
 ```
 
-## Deploy til Vercel
+## Deploy
 
 ```bash
-vercel
-# eller
 vercel --prod
 ```
 
-## SEO og analyse
+## SEO og trafikk
 
-- Metadata for SEO/SoMe ligger i `index.html` og oppdateres dynamisk per valgt samband/retning.
-- Strukturerte data (Schema.org `WebSite` + `FAQPage`) injiseres i appen.
-- `robots.txt` og `sitemap.xml` serveres dynamisk via:
-  - `/robots.txt` -> `/api/robots`
-  - `/sitemap.xml` -> `/api/sitemap`
-- Vercel Analytics er aktivert i frontend med `@vercel/analytics/react`.
-- I Vercel-prosjektet må Analytics være slått på i dashboardet for å se page views.
+Denne appen er satt opp for å kunne rangeres godt over tid, med:
+
+- Dynamiske metadata (title/description/canonical) per valgt samband/retning
+- Open Graph + Twitter metadata for bedre deling og CTR
+- Schema.org (`WebSite` + `FAQPage`)
+- Dynamisk `robots.txt`
+- Dynamisk `sitemap.xml`
+
+Relevante endepunkter:
+
+- `https://ferjetider.vercel.app/robots.txt`
+- `https://ferjetider.vercel.app/sitemap.xml`
+
+For page views:
+
+- `@vercel/analytics/react` er installert i frontend
+- Husk å aktivere Analytics i Vercel-prosjektet
 
 ## API-kontrakt
 
-`GET /api/departures?route=<routeKey>&direction=<directionKey>&limit=6`
+Endpoint:
+
+- `GET /api/departures?route=<routeKey>&direction=<directionKey>&limit=6`
 
 Gyldige `routeKey`:
 
@@ -83,10 +104,22 @@ Gyldige `directionKey`:
 - `halhjem_to_sandvikvag`
 - `sandvikvag_to_halhjem`
 
-Svar:
+Responsfelter:
 
 - `routeKey`
 - `directionKey`
 - `updatedAt`
 - `isFallback`
 - `departures[]`
+
+## Prosjektstruktur
+
+- `/src` frontend
+- `/api` Vercel serverless functions
+- `/tests` vitest-tester
+- `/public` statiske assets
+
+## Notat
+
+Designet er bevisst inspirert av følelsen i nesteferje.no:
+minst mulig friksjon, størst mulig lesbarhet når du faktisk står og venter på ferja.

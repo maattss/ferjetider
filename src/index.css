@@ -3,33 +3,43 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 99%;
-  --foreground: 215 28% 17%;
+  --background: 204 43% 97%;
+  --foreground: 211 35% 16%;
   --card: 0 0% 100%;
-  --card-foreground: 215 28% 17%;
+  --card-foreground: 211 35% 16%;
   --popover: 0 0% 100%;
-  --popover-foreground: 215 28% 17%;
-  --primary: 205 82% 33%;
+  --popover-foreground: 211 35% 16%;
+  --primary: 202 81% 33%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 204 35% 93%;
-  --secondary-foreground: 215 28% 17%;
-  --muted: 210 20% 95%;
-  --muted-foreground: 215 13% 42%;
-  --accent: 205 65% 90%;
-  --accent-foreground: 215 28% 17%;
-  --destructive: 0 75% 42%;
+  --secondary: 203 44% 92%;
+  --secondary-foreground: 211 35% 16%;
+  --muted: 204 30% 94%;
+  --muted-foreground: 213 13% 38%;
+  --accent: 201 66% 90%;
+  --accent-foreground: 211 35% 16%;
+  --destructive: 0 73% 44%;
   --destructive-foreground: 0 0% 98%;
-  --border: 213 24% 88%;
-  --input: 213 24% 88%;
-  --ring: 205 82% 33%;
-  --radius: 0.6rem;
+  --border: 203 33% 82%;
+  --input: 203 33% 82%;
+  --ring: 202 81% 33%;
+  --radius: 0.85rem;
 }
 
 * {
   @apply border-border;
 }
 
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
 body {
-  @apply bg-background text-foreground antialiased;
-  font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  @apply text-foreground antialiased;
+  font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 14% -4%, hsl(201 78% 90%) 0%, transparent 48%),
+    radial-gradient(circle at 92% 2%, hsl(201 72% 94%) 0%, transparent 40%),
+    linear-gradient(180deg, hsl(203 44% 97%) 0%, hsl(204 34% 95%) 100%);
 }
