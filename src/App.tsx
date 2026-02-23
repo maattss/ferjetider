@@ -10,7 +10,7 @@ import { DeparturePanel } from "@/components/DeparturePanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const DEFAULT_TRAVEL_DIRECTION = TRAVEL_DIRECTIONS[0].key;
-const DEFAULT_SITE_ORIGIN = "https://ferjetider.vercel.app";
+const DEFAULT_SITE_ORIGIN = "https://ferjetider.fyi";
 
 function setMetaContent(selector: string, value: string): void {
   const meta = document.querySelector(selector);

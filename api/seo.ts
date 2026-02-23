@@ -38,7 +38,7 @@ export function getBaseUrl(req: VercelRequest): string {
   const proto = protoHeader.split(",")[0]?.trim() || "https";
 
   if (!host) {
-    return "https://ferjetider.vercel.app";
+    return "https://ferjetider.fyi";
   }
 
   return `${proto}://${host}`;
