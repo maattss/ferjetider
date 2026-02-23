@@ -6,11 +6,11 @@ import {
   type DirectionConfig,
   type DirectionKey,
   type RouteKey,
-} from "../src/config/routes";
+} from "../src/config/routes.js";
 import {
   formatOsloTime,
   minutesUntilDeparture,
-} from "../src/lib/time";
+} from "../src/lib/time.js";
 import type {
   Departure,
   DeparturesResponse,
