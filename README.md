@@ -1,18 +1,18 @@
-# Ferjetider Bergen-Stavanger
+# Ferjetider Bergen-Stavanger 🚢
 
 Rask, enkel og mobilvennlig ferjeside for strekningen Bergen-Stavanger.
-Bytt samband, velg retning, og få neste avgang med én gang.
+Bytt samband, velg retning, og få neste avgang med én gang – uten tull.
 
-Live side: [https://ferjetider.vercel.app](https://ferjetider.vercel.app)
+Live side: [https://ferjetider.fyi](https://ferjetider.fyi)
 
 ## Hva denne siden gjør
 
-- Viser live avganger for `Arsvågen ↔ Mortavika`
-- Viser live avganger for `Halhjem ↔ Sandvikvåg`
-- Viser begge retninger på begge samband
-- Løfter frem neste avgang tydelig
-- Oppdaterer automatisk hvert 60. sekund
-- Faller tilbake til sist lagrede data hvis API-et er nede
+- 🚢 Viser live avganger for `Arsvågen ↔ Mortavika`
+- ⛴️ Viser live avganger for `Halhjem ↔ Sandvikvåg`
+- ↔️ Viser begge retninger på begge samband
+- ⏱️ Løfter frem neste avgang tydelig
+- 🔄 Oppdaterer automatisk hvert 60. sekund
+- 💾 Faller tilbake til sist lagrede data hvis API-et er nede
 
 ## Stack
 
@@ -78,8 +78,8 @@ Denne appen er satt opp for å kunne rangeres godt over tid, med:
 
 Relevante endepunkter:
 
-- `https://ferjetider.vercel.app/robots.txt`
-- `https://ferjetider.vercel.app/sitemap.xml`
+- `https://ferjetider.fyi/robots.txt`
+- `https://ferjetider.fyi/sitemap.xml`
 
 For page views:
 
@@ -122,4 +122,4 @@ Responsfelter:
 ## Notat
 
 Designet er bevisst inspirert av følelsen i nesteferje.no:
-minst mulig friksjon, størst mulig lesbarhet når du faktisk står og venter på ferja.
+minst mulig friksjon, størst mulig lesbarhet når du faktisk står og venter på ferja. 🌊
