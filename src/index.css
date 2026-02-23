@@ -3,24 +3,24 @@
 @tailwind utilities;
 
 :root {
-  --background: 215 60% 5%;
+  --background: 215 75% 3%;
   --foreground: 210 15% 88%;
-  --card: 215 50% 9%;
+  --card: 215 60% 7%;
   --card-foreground: 210 15% 88%;
-  --popover: 215 50% 9%;
+  --popover: 215 60% 7%;
   --popover-foreground: 210 15% 88%;
   --primary: 200 85% 58%;
-  --primary-foreground: 215 60% 5%;
-  --secondary: 215 35% 14%;
+  --primary-foreground: 215 75% 3%;
+  --secondary: 215 40% 11%;
   --secondary-foreground: 210 15% 80%;
-  --muted: 215 30% 16%;
-  --muted-foreground: 213 20% 58%;
-  --accent: 200 45% 18%;
+  --muted: 215 35% 13%;
+  --muted-foreground: 213 20% 55%;
+  --accent: 200 50% 14%;
   --accent-foreground: 210 15% 88%;
   --destructive: 0 73% 52%;
   --destructive-foreground: 0 0% 98%;
-  --border: 215 30% 19%;
-  --input: 215 30% 19%;
+  --border: 215 35% 16%;
+  --input: 215 35% 16%;
   --ring: 200 85% 58%;
   --radius: 0.85rem;
 }
@@ -33,13 +33,14 @@ html,
 body,
 #root {
   min-height: 100%;
+  background-color: #030810;
 }
 
 body {
   @apply text-foreground antialiased;
   font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
-  background:
-    radial-gradient(circle at 14% -4%, hsl(215 80% 10%) 0%, transparent 48%),
-    radial-gradient(circle at 92% 2%, hsl(215 70% 7%) 0%, transparent 40%),
-    linear-gradient(180deg, hsl(215 60% 4%) 0%, hsl(215 55% 6%) 100%);
+  background-color: #030810;
+  background-image:
+    radial-gradient(circle at 14% 20%, hsl(215 75% 8%) 0%, transparent 50%),
+    radial-gradient(circle at 88% 10%, hsl(215 65% 5%) 0%, transparent 40%);
 }
