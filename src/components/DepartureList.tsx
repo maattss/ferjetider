@@ -11,7 +11,7 @@ interface DepartureListProps {
 
 function LoadingRows(): JSX.Element {
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-white">
+    <div className="overflow-hidden rounded-2xl border border-border bg-card">
       {Array.from({ length: 4 }).map((_, index) => (
         <div
           key={`loading-row-${index}`}
@@ -40,14 +40,14 @@ export function DepartureList({
 
   if (departures.length === 0) {
     return (
-      <div className="rounded-2xl border border-border bg-white p-4 text-sm text-muted-foreground">
+      <div className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
         {emptyMessage}
       </div>
     );
   }
 
   return (
-    <ul className="overflow-hidden rounded-2xl border border-border bg-white">
+    <ul className="overflow-hidden rounded-2xl border border-border bg-card">
       {departures.map((departure) => (
         <li
           key={`${departure.departureTimeIso}-${departure.destination}-${departure.quay}`}

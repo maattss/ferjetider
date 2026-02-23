@@ -154,7 +154,7 @@ export default function App(): JSX.Element {
   return (
     <>
       <main className="min-h-screen bg-background px-3 py-5 text-foreground sm:py-8">
-        <div className="mx-auto w-full max-w-lg space-y-4">
+        <div className="mx-auto w-full max-w-lg space-y-4 xl:max-w-3xl">
           <header className="px-1">
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-primary/80">
               Ferjetider
@@ -164,7 +164,7 @@ export default function App(): JSX.Element {
             </h1>
           </header>
 
-          <section className="rounded-2xl border border-border/90 bg-white/85 p-3 shadow-[0_14px_36px_-28px_rgba(15,95,143,0.65)] backdrop-blur">
+          <section className="rounded-2xl border border-border/90 bg-card/85 p-3 shadow-[0_14px_36px_-28px_rgba(0,120,180,0.35)] backdrop-blur">
             <Tabs
               value={travelDirectionKey}
               onValueChange={(nextValue) => {
@@ -178,7 +178,7 @@ export default function App(): JSX.Element {
                   <TabsTrigger
                     key={td.key}
                     value={td.key}
-                    className="h-auto rounded-lg px-2 py-2 text-xs font-semibold leading-tight data-[state=active]:bg-white data-[state=active]:shadow-none"
+                    className="h-auto rounded-lg px-2 py-2 text-xs font-semibold leading-tight data-[state=active]:bg-card data-[state=active]:shadow-none"
                   >
                     {td.label}
                   </TabsTrigger>
@@ -186,7 +186,12 @@ export default function App(): JSX.Element {
               </TabsList>
 
               {TRAVEL_DIRECTIONS.map((td) => (
-                <TabsContent key={td.key} value={td.key} className="mt-4 space-y-6">
+                <TabsContent
+                  key={td.key}
+                  value={td.key}
+                  className="mt-4 grid grid-cols-1 gap-6 data-[state=inactive]:hidden xl:grid-cols-2"
+                  forceMount
+                >
                   {td.routes.map((route) => (
                     <DeparturePanel
                       key={`${route.routeKey}-${route.directionKey}`}

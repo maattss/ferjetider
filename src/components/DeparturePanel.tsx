@@ -64,7 +64,7 @@ export function DeparturePanel({
             </div>
 
             <div className="flex flex-col items-end gap-2">
-              <span className="rounded-full border border-primary/30 bg-white/90 px-3 py-1 text-sm font-semibold text-primary">
+              <span className="rounded-full border border-primary/30 bg-card/90 px-3 py-1 text-sm font-semibold text-primary">
                 {formatMinutesLabel(nextDeparture.minutesUntil)}
               </span>
               <span
@@ -72,7 +72,7 @@ export function DeparturePanel({
                   "rounded-full px-2 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em]",
                   nextDeparture.realtime
                     ? "bg-primary text-primary-foreground"
-                    : "border border-border bg-white text-muted-foreground",
+                    : "border border-border bg-card text-muted-foreground",
                 )}
               >
                 {nextDeparture.realtime ? "Live" : "Planlagt"}
