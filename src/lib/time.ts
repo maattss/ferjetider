@@ -31,5 +31,11 @@ export function formatMinutesLabel(minutesUntil: number): string {
     return "Nå";
   }
 
+  if (minutesUntil >= 60) {
+    const hours = Math.floor(minutesUntil / 60);
+    const mins = minutesUntil % 60;
+    return mins === 0 ? `${hours}t` : `${hours}t ${mins}m`;
+  }
+
   return `${minutesUntil} min`;
 }

@@ -157,7 +157,7 @@ export default function App(): JSX.Element {
         <div className="mx-auto w-full max-w-lg space-y-4">
           <header className="px-1">
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-primary/80">
-              Sanntidsferjer E39
+              Ferjetider
             </p>
             <h1 className="mt-0.5 text-3xl font-semibold tracking-tight">
               Bergen–Stavanger
@@ -201,28 +201,6 @@ export default function App(): JSX.Element {
             </Tabs>
           </section>
 
-          <section className="rounded-2xl border border-border/90 bg-white/75 p-3 text-xs text-muted-foreground">
-            <h2 className="text-sm font-semibold text-foreground">Om siden</h2>
-            <p className="mt-1">
-              Enkel visning inspirert av nesteferje.no, optimalisert for rask sjekk
-              rett før avgang.
-            </p>
-            <details className="mt-2">
-              <summary className="cursor-pointer font-medium text-foreground">
-                Vanlige spørsmål
-              </summary>
-              <dl className="mt-2 space-y-1">
-                <div>
-                  <dt className="font-medium text-foreground">Hvor ofte oppdateres tidene?</dt>
-                  <dd>Hvert 60. sekund og når fanen blir aktiv igjen.</dd>
-                </div>
-                <div>
-                  <dt className="font-medium text-foreground">Vises begge retninger?</dt>
-                  <dd>Ja, for begge sambandene.</dd>
-                </div>
-              </dl>
-            </details>
-          </section>
         </div>
       </main>
 

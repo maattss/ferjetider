@@ -20,5 +20,8 @@ describe("time utils", () => {
   it("formats minute labels", () => {
     expect(formatMinutesLabel(0)).toBe("Nå");
     expect(formatMinutesLabel(7)).toBe("7 min");
+    expect(formatMinutesLabel(60)).toBe("1t");
+    expect(formatMinutesLabel(87)).toBe("1t 27m");
+    expect(formatMinutesLabel(120)).toBe("2t");
   });
 });

@@ -19,7 +19,7 @@ export function DeparturePanel({
   fromLabel,
   toLabel,
 }: DeparturePanelProps): JSX.Element {
-  const { data, error, isFetching, isFallback, isLoading, refetch } = useDepartures({
+  const { data, error, isFallback, isLoading } = useDepartures({
     routeKey,
     directionKey,
     limit: 6,
@@ -42,8 +42,6 @@ export function DeparturePanel({
         updatedAt={data?.updatedAt}
         error={error}
         isFallback={isFallback}
-        isFetching={isFetching}
-        onRefresh={refetch}
       />
 
       <div className="rounded-2xl border border-primary/20 bg-[linear-gradient(120deg,rgba(15,95,143,0.16),rgba(44,155,200,0.16))] p-4">
