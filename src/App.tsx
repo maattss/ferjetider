@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Separator } from "@/components/ui/separator";
 import { formatMinutesLabel } from "@/lib/time";
+import { cn } from "@/lib/utils";
 
 const DEFAULT_ROUTE = ROUTES[0].key;
 const DEFAULT_SITE_ORIGIN = "https://ferjetider.vercel.app";
@@ -38,6 +39,15 @@ function setCanonicalUrl(url: string): void {
   const canonical = document.querySelector("link[rel='canonical']");
   if (canonical instanceof HTMLLinkElement) {
     canonical.href = url;
+  }
+}
+
+function setJsonLd(content: string): void {
+  const script = document.getElementById("schema-jsonld");
+  if (script) {
+    script.textContent = content;
+  } else if (import.meta.env.DEV) {
+    console.warn("setJsonLd: <script id='schema-jsonld'> not found in document head.");
   }
 }
 
@@ -186,7 +196,8 @@ export default function App(): JSX.Element {
     setMetaContent("meta[name='twitter:title']", seoTitle);
     setMetaContent("meta[name='twitter:description']", seoDescription);
     setCanonicalUrl(currentUrl);
-  }, [currentUrl, seoDescription, seoTitle]);
+    setJsonLd(faqSchema);
+  }, [currentUrl, faqSchema, seoDescription, seoTitle]);
 
   const { data, error, isFetching, isFallback, isLoading, refetch } = useDepartures({
     routeKey,
@@ -301,9 +312,12 @@ export default function App(): JSX.Element {
                           {formatMinutesLabel(nextDeparture.minutesUntil)}
                         </span>
                         <span
-                          className={`rounded-full px-2 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em] ${nextDeparture.realtime
-                            ? "bg-primary text-primary-foreground"
-                            : "border border-border bg-white text-muted-foreground"}`}
+                          className={cn(
+                            "rounded-full px-2 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em]",
+                            nextDeparture.realtime
+                              ? "bg-primary text-primary-foreground"
+                              : "border border-border bg-white text-muted-foreground",
+                          )}
                         >
                           {nextDeparture.realtime ? "Live" : "Planlagt"}
                         </span>
@@ -364,7 +378,6 @@ export default function App(): JSX.Element {
       </main>
 
       <Analytics />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: faqSchema }} />
     </>
   );
 }

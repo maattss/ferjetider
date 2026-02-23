@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { formatMinutesLabel } from "@/lib/time";
 import type { Departure } from "@/types/departures";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -70,7 +71,10 @@ export function DepartureList({
               {formatMinutesLabel(departure.minutesUntil)}
             </span>
             <span
-              className={`text-[0.66rem] font-semibold uppercase tracking-[0.08em] ${departure.realtime ? "text-primary" : "text-muted-foreground"}`}
+              className={cn(
+                "text-[0.66rem] font-semibold uppercase tracking-[0.08em]",
+                departure.realtime ? "text-primary" : "text-muted-foreground",
+              )}
             >
               {departure.realtime ? "Live" : "Planlagt"}
             </span>
