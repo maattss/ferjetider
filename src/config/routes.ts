@@ -138,16 +138,16 @@ export const TRAVEL_DIRECTIONS: TravelDirectionConfig[] = [
     label: "Mot Stavanger",
     routes: [
       {
-        routeKey: "arsvagen_mortavika",
-        directionKey: "mortavika_to_arsvagen",
-        fromLabel: "Mortavika",
-        toLabel: "Arsvågen",
-      },
-      {
         routeKey: "halhjem_sandvikvag",
         directionKey: "halhjem_to_sandvikvag",
         fromLabel: "Halhjem",
         toLabel: "Sandvikvåg",
+      },
+      {
+        routeKey: "arsvagen_mortavika",
+        directionKey: "mortavika_to_arsvagen",
+        fromLabel: "Mortavika",
+        toLabel: "Arsvågen",
       },
     ],
   },

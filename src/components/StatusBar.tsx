@@ -23,7 +23,7 @@ export function StatusBar({
       </div>
 
       {isFallback ? (
-        <Alert className="border-amber-300/70 bg-amber-50 text-amber-900">
+        <Alert className="border-amber-500/50 bg-amber-950/40 text-amber-300">
           <AlertDescription>
             Live-data utilgjengelig. Viser sist lagrede avganger.
           </AlertDescription>
