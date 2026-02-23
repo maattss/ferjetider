@@ -1,5 +1,5 @@
 import { formatOsloTime } from "@/lib/time";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
 interface StatusBarProps {
@@ -19,7 +19,7 @@ export function StatusBar({
 }: StatusBarProps): JSX.Element {
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between rounded-md border border-border/70 bg-card px-3 py-2 text-xs text-muted-foreground">
+      <div className="flex items-center justify-between rounded-xl border border-border bg-secondary/60 px-3 py-2 text-xs text-muted-foreground">
         <span>
           {updatedAt
             ? `Oppdatert ${formatOsloTime(updatedAt)}`
@@ -27,28 +27,28 @@ export function StatusBar({
         </span>
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="sm"
           onClick={() => {
             void onRefresh();
           }}
           disabled={isFetching}
-          className="h-7 px-2 text-xs"
+          className="h-7 rounded-full border-primary/30 bg-white px-3 text-xs text-primary hover:bg-white"
         >
           {isFetching ? "Oppdaterer..." : "Oppdater"}
         </Button>
       </div>
 
       {isFallback ? (
-        <Alert>
-          <AlertTitle>Live-data utilgjengelig</AlertTitle>
-          <AlertDescription>Viser sist lagrede avganger.</AlertDescription>
+        <Alert className="border-amber-300/70 bg-amber-50 text-amber-900">
+          <AlertDescription>
+            Live-data utilgjengelig. Viser sist lagrede avganger.
+          </AlertDescription>
         </Alert>
       ) : null}
 
       {error && !isFallback ? (
-        <Alert variant="destructive">
-          <AlertTitle>Feil ved henting</AlertTitle>
+        <Alert variant="destructive" className="border-destructive/40 bg-destructive/10">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
