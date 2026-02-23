@@ -95,3 +95,69 @@ export function getDirectionConfig(
 ): DirectionConfig | undefined {
   return ROUTE_MAP[routeKey].directions.find((direction) => direction.key === directionKey);
 }
+
+// Travel directions group routes by overall travel direction (Bergen ↔ Stavanger)
+
+export const TRAVEL_DIRECTION_KEYS = ["mot_bergen", "mot_stavanger"] as const;
+export type TravelDirectionKey = (typeof TRAVEL_DIRECTION_KEYS)[number];
+
+export interface TravelDirectionRoute {
+  routeKey: RouteKey;
+  directionKey: DirectionKey;
+  fromLabel: string;
+  toLabel: string;
+}
+
+export interface TravelDirectionConfig {
+  key: TravelDirectionKey;
+  label: string;
+  routes: TravelDirectionRoute[];
+}
+
+export const TRAVEL_DIRECTIONS: TravelDirectionConfig[] = [
+  {
+    key: "mot_bergen",
+    label: "Mot Bergen",
+    routes: [
+      {
+        routeKey: "arsvagen_mortavika",
+        directionKey: "arsvagen_to_mortavika",
+        fromLabel: "Arsvågen",
+        toLabel: "Mortavika",
+      },
+      {
+        routeKey: "halhjem_sandvikvag",
+        directionKey: "sandvikvag_to_halhjem",
+        fromLabel: "Sandvikvåg",
+        toLabel: "Halhjem",
+      },
+    ],
+  },
+  {
+    key: "mot_stavanger",
+    label: "Mot Stavanger",
+    routes: [
+      {
+        routeKey: "arsvagen_mortavika",
+        directionKey: "mortavika_to_arsvagen",
+        fromLabel: "Mortavika",
+        toLabel: "Arsvågen",
+      },
+      {
+        routeKey: "halhjem_sandvikvag",
+        directionKey: "halhjem_to_sandvikvag",
+        fromLabel: "Halhjem",
+        toLabel: "Sandvikvåg",
+      },
+    ],
+  },
+];
+
+export const TRAVEL_DIRECTION_MAP: Record<TravelDirectionKey, TravelDirectionConfig> = {
+  mot_bergen: TRAVEL_DIRECTIONS[0],
+  mot_stavanger: TRAVEL_DIRECTIONS[1],
+};
+
+export function isTravelDirectionKey(value: string): value is TravelDirectionKey {
+  return TRAVEL_DIRECTION_KEYS.includes(value as TravelDirectionKey);
+}
