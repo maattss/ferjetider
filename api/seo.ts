@@ -2,10 +2,8 @@ import type { VercelRequest } from "@vercel/node";
 
 const INDEXABLE_PATHS = [
   "/",
-  "/?route=arsvagen_mortavika&direction=arsvagen_to_mortavika",
-  "/?route=arsvagen_mortavika&direction=mortavika_to_arsvagen",
-  "/?route=halhjem_sandvikvag&direction=halhjem_to_sandvikvag",
-  "/?route=halhjem_sandvikvag&direction=sandvikvag_to_halhjem",
+  "/?travelDirection=mot_bergen",
+  "/?travelDirection=mot_stavanger",
 ];
 
 function readHeader(

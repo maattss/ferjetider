@@ -23,10 +23,10 @@ describe("seo utilities", () => {
 
     expect(xml).toContain("https://ferjetider.no/");
     expect(xml).toContain(
-      "https://ferjetider.no/?route=arsvagen_mortavika&amp;direction=arsvagen_to_mortavika",
+      "https://ferjetider.no/?travelDirection=mot_bergen",
     );
     expect(xml).toContain(
-      "https://ferjetider.no/?route=halhjem_sandvikvag&amp;direction=sandvikvag_to_halhjem",
+      "https://ferjetider.no/?travelDirection=mot_stavanger",
     );
   });
 
