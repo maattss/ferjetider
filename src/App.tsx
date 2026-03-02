@@ -103,17 +103,35 @@ export default function App(): JSX.Element {
             url: siteOrigin,
             inLanguage: "nb-NO",
             description:
-              "Live ferjetider for Arsvågen-Mortavika og Halhjem-Sandvikvåg.",
+              "Live ferjetider og fergeruter for Arsvågen-Mortavika og Halhjem-Sandvikvåg på E39.",
+            keywords:
+              "ferjetider, fergetider, ferjeruter, fergeruter, ferje, ferge, Arsvågen, Mortavika, Halhjem, Sandvikvåg, Bergen, Stavanger, E39",
           },
           {
             "@type": "FAQPage",
             mainEntity: [
               {
                 "@type": "Question",
-                name: "Hvilke samband vises på siden?",
+                name: "Hvilke ferjesamband vises på siden?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "Siden viser Arsvågen-Mortavika og Halhjem-Sandvikvåg i begge retninger.",
+                  text: "Siden viser Arsvågen-Mortavika og Halhjem-Sandvikvåg i begge retninger på E39 mellom Bergen og Stavanger.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Når går neste ferje fra Arsvågen til Mortavika?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Se sanntidsavganger for Arsvågen-Mortavika direkte på ferjetider.fyi. Siden oppdateres automatisk hvert minutt med live-data.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Når går neste ferje fra Halhjem til Sandvikvåg?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Se sanntidsavganger for Halhjem-Sandvikvåg direkte på ferjetider.fyi. Siden oppdateres automatisk hvert minutt med live-data.",
                 },
               },
               {
@@ -130,6 +148,14 @@ export default function App(): JSX.Element {
                 acceptedAnswer: {
                   "@type": "Answer",
                   text: "Siden viser sist lagrede avganger og markerer tydelig at data kan være utdaterte.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Hva er fergetider for E39?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "E39-sambandene Arsvågen-Mortavika og Halhjem-Sandvikvåg trafikkeres av Fjord1. Avgangene varierer, men ferjer går vanligvis hvert 20.-30. minutt i rushtiden. Se sanntidsavganger på ferjetider.fyi.",
                 },
               },
             ],

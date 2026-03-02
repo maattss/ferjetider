@@ -1,0 +1,60 @@
+# Ferjetider Bergen–Stavanger
+
+> Live ferjetider og fergeruter for E39-sambandene mellom Bergen og Stavanger.
+
+Ferjetider.fyi viser sanntidsavganger for to ferjesamband på E39:
+
+- **Arsvågen–Mortavika** (Rogaland): forbinder E39 sør for Stavanger med fastlandet mot Bergen
+- **Halhjem–Sandvikvåg** (Vestland): forbinder Hordaland med Rogaland
+
+Data hentes fra Entur (sanntidssystem for norsk kollektivtrafikk) og oppdateres hvert minutt.
+
+## API
+
+Avganger er tilgjengelig via et åpent JSON-API:
+
+### Hent avganger
+
+`GET /api/departures?route=<ruteKey>&direction=<retningKey>&limit=<antall>`
+
+**Gyldige ruteKey-verdier:**
+- `arsvagen_mortavika`
+- `halhjem_sandvikvag`
+
+**Gyldige retningKey-verdier:**
+- `arsvagen_to_mortavika` — Arsvågen → Mortavika (mot Bergen)
+- `mortavika_to_arsvagen` — Mortavika → Arsvågen (mot Stavanger)
+- `halhjem_to_sandvikvag` — Halhjem → Sandvikvåg (mot Stavanger)
+- `sandvikvag_to_halhjem` — Sandvikvåg → Halhjem (mot Bergen)
+
+**Eksempel:**
+```
+GET https://ferjetider.fyi/api/departures?route=arsvagen_mortavika&direction=arsvagen_to_mortavika
+```
+
+**Svar (JSON):**
+```json
+{
+  "routeKey": "arsvagen_mortavika",
+  "directionKey": "arsvagen_to_mortavika",
+  "updatedAt": "2024-01-15T10:30:00.000Z",
+  "isFallback": false,
+  "departures": [
+    {
+      "departureTimeIso": "2024-01-15T10:45:00+01:00",
+      "displayTime": "10:45",
+      "minutesUntil": 15,
+      "destination": "Mortavika",
+      "quay": "Arsvågen",
+      "realtime": true
+    }
+  ]
+}
+```
+
+## Nettsted
+
+- **URL:** https://ferjetider.fyi
+- **Språk:** Norsk bokmål
+- **Oppdateringsfrekvens:** Hvert minutt
+- **Kilde:** Entur (https://entur.no)
