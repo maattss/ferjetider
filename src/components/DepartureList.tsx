@@ -15,9 +15,9 @@ function LoadingRows(): JSX.Element {
       {Array.from({ length: 4 }).map((_, index) => (
         <div
           key={`loading-row-${index}`}
-          className="grid grid-cols-[84px_1fr_56px] items-center gap-3 border-b border-border/60 px-4 py-3 last:border-b-0"
+          className="grid grid-cols-[96px_1fr_64px] items-center gap-3 border-b border-border/60 px-4 py-4 last:border-b-0"
         >
-          <Skeleton className="h-9 w-16" />
+          <Skeleton className="h-10 w-18" />
           <div className="space-y-1">
             <Skeleton className="h-4 w-28" />
             <Skeleton className="h-3 w-20" />
@@ -51,28 +51,28 @@ export function DepartureList({
       {departures.map((departure) => (
         <li
           key={`${departure.departureTimeIso}-${departure.destination}-${departure.quay}`}
-          className="grid grid-cols-[84px_1fr_auto] items-center gap-3 border-b border-border/60 px-4 py-3 last:border-b-0"
+          className="grid grid-cols-[96px_1fr_auto] items-center gap-3 border-b border-border/60 px-4 py-4 last:border-b-0"
         >
-          <div className="text-[1.9rem] font-semibold tabular-nums leading-none text-foreground">
+          <div className="text-[2.2rem] font-bold tabular-nums leading-none text-foreground">
             {departure.displayTime}
           </div>
 
           <div className="min-w-0">
-            <div className="truncate text-sm font-semibold text-foreground">
+            <div className="truncate text-base font-semibold text-foreground">
               Til {departure.destination}
             </div>
-            <div className="truncate text-xs text-muted-foreground">
+            <div className="truncate text-sm text-muted-foreground">
               Kai: {departure.quay || "Ukjent"}
             </div>
           </div>
 
-          <div className="flex flex-col items-end gap-1">
-            <span className="rounded-full border border-border bg-secondary px-2 py-1 text-xs font-semibold text-foreground">
+          <div className="flex flex-col items-end gap-1.5">
+            <span className="rounded-full border border-border bg-secondary px-3 py-1.5 text-sm font-bold text-foreground tabular-nums">
               {formatMinutesLabel(departure.minutesUntil)}
             </span>
             <span
               className={cn(
-                "text-[0.66rem] font-semibold uppercase tracking-[0.08em]",
+                "text-xs font-semibold uppercase tracking-wide",
                 departure.realtime ? "text-primary" : "text-muted-foreground",
               )}
             >

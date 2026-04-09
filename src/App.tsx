@@ -179,60 +179,59 @@ export default function App(): JSX.Element {
 
   return (
     <>
-      <main className="min-h-screen bg-background px-3 py-5 text-foreground sm:py-8">
-        <div className="mx-auto w-full max-w-lg space-y-4 xl:max-w-3xl">
-          <header className="px-1">
-            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-primary/80">
+      <main className="h-screen overflow-hidden bg-background p-3 text-foreground flex flex-col gap-3">
+        <header className="flex items-center justify-between rounded-2xl border border-border/50 bg-card px-5 py-3 shrink-0">
+          <div>
+            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary/60">
               Ferjetider
             </p>
-            <h1 className="mt-0.5 text-3xl font-semibold tracking-tight">
-              Bergen–Stavanger
-            </h1>
-          </header>
+            <h1 className="text-xl font-bold tracking-tight">Bergen–Stavanger</h1>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Arsvågen ↔ Mortavika · Halhjem ↔ Sandvikvåg
+          </p>
+        </header>
 
-          <section className="rounded-2xl border border-border/90 bg-card/85 p-3 shadow-[0_14px_36px_-28px_rgba(0,120,180,0.35)] backdrop-blur">
-            <Tabs
-              value={travelDirectionKey}
-              onValueChange={(nextValue) => {
-                if (isTravelDirectionKey(nextValue)) {
-                  setTravelDirectionKey(nextValue);
-                }
-              }}
+        <Tabs
+          value={travelDirectionKey}
+          onValueChange={(nextValue) => {
+            if (isTravelDirectionKey(nextValue)) {
+              setTravelDirectionKey(nextValue);
+            }
+          }}
+          className="flex-1 min-h-0 flex flex-col gap-3"
+        >
+          <TabsList className="grid h-auto w-full grid-cols-2 rounded-2xl bg-secondary p-1.5 shrink-0">
+            {TRAVEL_DIRECTIONS.map((td) => (
+              <TabsTrigger
+                key={td.key}
+                value={td.key}
+                className="h-auto rounded-xl py-3 text-base font-semibold leading-tight data-[state=active]:bg-card data-[state=active]:shadow-none"
+              >
+                {td.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {TRAVEL_DIRECTIONS.map((td) => (
+            <TabsContent
+              key={td.key}
+              value={td.key}
+              className="flex-1 min-h-0 mt-0 grid grid-cols-2 gap-3 data-[state=inactive]:hidden"
+              forceMount
             >
-              <TabsList className="grid h-auto w-full grid-cols-2 rounded-xl bg-secondary p-1">
-                {TRAVEL_DIRECTIONS.map((td) => (
-                  <TabsTrigger
-                    key={td.key}
-                    value={td.key}
-                    className="h-auto rounded-lg px-2 py-2 text-xs font-semibold leading-tight data-[state=active]:bg-card data-[state=active]:shadow-none"
-                  >
-                    {td.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {TRAVEL_DIRECTIONS.map((td) => (
-                <TabsContent
-                  key={td.key}
-                  value={td.key}
-                  className="mt-4 grid grid-cols-1 gap-6 data-[state=inactive]:hidden xl:grid-cols-2"
-                  forceMount
-                >
-                  {td.routes.map((route) => (
-                    <DeparturePanel
-                      key={`${route.routeKey}-${route.directionKey}`}
-                      routeKey={route.routeKey}
-                      directionKey={route.directionKey}
-                      fromLabel={route.fromLabel}
-                      toLabel={route.toLabel}
-                    />
-                  ))}
-                </TabsContent>
+              {td.routes.map((route) => (
+                <DeparturePanel
+                  key={`${route.routeKey}-${route.directionKey}`}
+                  routeKey={route.routeKey}
+                  directionKey={route.directionKey}
+                  fromLabel={route.fromLabel}
+                  toLabel={route.toLabel}
+                />
               ))}
-            </Tabs>
-          </section>
-
-        </div>
+            </TabsContent>
+          ))}
+        </Tabs>
       </main>
 
       <Analytics />
