@@ -7,7 +7,9 @@ import {
   isTravelDirectionKey,
 } from "@/config/routes";
 import { DeparturePanel } from "@/components/DeparturePanel";
+import { TrafficAlerts } from "@/components/TrafficAlerts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTrafficAlerts } from "@/hooks/useTrafficAlerts";
 
 const DEFAULT_TRAVEL_DIRECTION = TRAVEL_DIRECTIONS[0].key;
 const DEFAULT_SITE_ORIGIN = "https://ferjetider.fyi";
@@ -177,6 +179,8 @@ export default function App(): JSX.Element {
     setJsonLd(faqSchema);
   }, [currentUrl, faqSchema, seoDescription, seoTitle]);
 
+  const { alerts, isLoading: alertsLoading } = useTrafficAlerts();
+
   return (
     <>
       <main className="h-screen overflow-hidden bg-background p-3 text-foreground flex flex-col gap-3">
@@ -191,6 +195,8 @@ export default function App(): JSX.Element {
             Arsvågen ↔ Mortavika · Halhjem ↔ Sandvikvåg
           </p>
         </header>
+
+        <TrafficAlerts alerts={alerts} isLoading={alertsLoading} />
 
         <Tabs
           value={travelDirectionKey}
