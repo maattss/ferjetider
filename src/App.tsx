@@ -10,11 +10,7 @@ import {
 } from "@/config/routes";
 import { useDepartures } from "@/hooks/useDepartures";
 import { DepartureList } from "@/components/DepartureList";
-import { StatusBar } from "@/components/StatusBar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Separator } from "@/components/ui/separator";
-import { formatMinutesLabel } from "@/lib/time";
+import { formatMinutesLabel, formatOsloTime } from "@/lib/time";
 
 const DEFAULT_ROUTE = ROUTES[0].key;
 const DEFAULT_SITE_ORIGIN = "https://ferjetider.vercel.app";
@@ -95,7 +91,6 @@ export default function App(): JSX.Element {
     if (!selectedDirection) {
       return "Ferjetider Arsvågen-Mortavika og Halhjem-Sandvikvåg";
     }
-
     return `Ferjetider ${selectedDirection.label} | Bergen-Stavanger`;
   }, [selectedDirection]);
 
@@ -103,7 +98,6 @@ export default function App(): JSX.Element {
     if (!selectedDirection) {
       return "Live ferjetider for Arsvågen-Mortavika og Halhjem-Sandvikvåg med sanntidsoppdateringer.";
     }
-
     return `Sjekk neste ferje fra ${selectedDirection.fromLabel} til ${selectedDirection.toLabel}. Viser de 6 neste avgangene med live oppdatering.`;
   }, [selectedDirection]);
 
@@ -200,166 +194,155 @@ export default function App(): JSX.Element {
 
   return (
     <>
-      <main className="min-h-screen bg-background px-3 py-5 text-foreground sm:py-8">
-        <div className="mx-auto w-full max-w-lg space-y-4">
-          <header className="rounded-2xl border border-border/90 bg-white/85 px-4 py-4 shadow-[0_10px_30px_-22px_rgba(15,95,143,0.75)] backdrop-blur">
-            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-primary/80">
+      <main className="h-screen overflow-hidden bg-background text-foreground p-3 flex flex-col gap-3">
+        {/* Header */}
+        <header className="flex items-center justify-between rounded-2xl border border-border/50 bg-card px-5 py-3 shrink-0">
+          <div>
+            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary/60">
               Sanntidsferjer
             </p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-              Ferjetider Bergen-Stavanger
+            <h1 className="text-xl font-bold tracking-tight">
+              Ferjetider Bergen–Stavanger
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Arsvågen ↔ Mortavika og Halhjem ↔ Sandvikvåg
-            </p>
-          </header>
-
-          <section className="rounded-2xl border border-border/90 bg-white/85 p-3 shadow-[0_14px_36px_-28px_rgba(15,95,143,0.65)] backdrop-blur">
-            <Tabs
-              value={routeKey}
-              onValueChange={(nextValue) => {
-                if (!isRouteKey(nextValue)) {
-                  return;
-                }
-
-                setRouteKey(nextValue);
-                setDirectionKey(defaultDirection(nextValue));
-              }}
+          </div>
+          <div className="flex items-center gap-4">
+            {data?.updatedAt ? (
+              <span className="text-xs text-muted-foreground">
+                Oppdatert {formatOsloTime(data.updatedAt)}
+              </span>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => { void refetch(); }}
+              disabled={isFetching}
+              className="rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
             >
-              <TabsList className="grid h-auto w-full grid-cols-2 rounded-xl bg-secondary p-1">
-                {ROUTES.map((route) => (
-                  <TabsTrigger
-                    key={route.key}
-                    value={route.key}
-                    className="h-auto rounded-lg px-2 py-2 text-xs font-semibold leading-tight data-[state=active]:bg-white data-[state=active]:shadow-none"
-                  >
-                    {route.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+              {isFetching ? "Oppdaterer..." : "Oppdater"}
+            </button>
+          </div>
+        </header>
 
-              <TabsContent value={routeKey}>
-                <ToggleGroup
-                  type="single"
-                  value={directionKey}
-                  onValueChange={(nextValue) => {
-                    if (nextValue) {
-                      setDirectionKey(nextValue as DirectionKey);
-                    }
-                  }}
-                  className="mt-3 grid w-full grid-cols-2 gap-2"
-                >
-                  {routeConfig.directions.map((direction) => (
-                    <ToggleGroupItem
-                      key={direction.key}
-                      value={direction.key}
-                      className="h-auto rounded-xl border-border bg-white/70 px-2 py-2 text-[0.72rem] font-medium leading-tight data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-                      aria-label={direction.label}
-                    >
-                      {direction.label}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
+        {/* Route + Direction selectors */}
+        <div className="flex gap-3 shrink-0">
+          {/* Route toggle */}
+          <div className="flex rounded-2xl bg-secondary p-1.5 gap-1.5">
+            {ROUTES.map((route) => (
+              <button
+                key={route.key}
+                type="button"
+                onClick={() => {
+                  setRouteKey(route.key);
+                  setDirectionKey(defaultDirection(route.key));
+                }}
+                className={`rounded-xl px-5 py-3 text-sm font-semibold transition-colors ${
+                  routeKey === route.key
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {route.label}
+              </button>
+            ))}
+          </div>
 
-                {selectedDirection ? (
-                  <p className="mt-3 text-xs font-medium text-muted-foreground">
-                    Fra {selectedDirection.fromLabel} til {selectedDirection.toLabel}
-                  </p>
-                ) : null}
+          {/* Direction toggle */}
+          <div className="flex flex-1 rounded-2xl bg-secondary p-1.5 gap-1.5">
+            {routeConfig.directions.map((direction) => (
+              <button
+                key={direction.key}
+                type="button"
+                onClick={() => setDirectionKey(direction.key)}
+                className={`flex-1 rounded-xl px-5 py-3 text-sm font-semibold transition-colors ${
+                  directionKey === direction.key
+                    ? "bg-card text-foreground shadow-sm border border-border/80"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {direction.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-                <div className="mt-3">
-                  <StatusBar
-                    updatedAt={data?.updatedAt}
-                    error={error}
-                    isFallback={isFallback}
-                    isFetching={isFetching}
-                    onRefresh={refetch}
-                  />
-                </div>
+        {/* Alerts (only when needed) */}
+        {isFallback ? (
+          <div className="shrink-0 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-sm font-medium text-amber-300">
+            Live-data utilgjengelig — viser sist lagrede avganger.
+          </div>
+        ) : null}
+        {error && !isFallback ? (
+          <div className="shrink-0 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-sm font-medium text-destructive">
+            {error}
+          </div>
+        ) : null}
 
-                <div className="mt-3 rounded-2xl border border-primary/20 bg-[linear-gradient(120deg,rgba(15,95,143,0.16),rgba(44,155,200,0.16))] p-4">
-                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-primary/90">
-                    Neste avgang
-                  </p>
-
-                  {nextDeparture ? (
-                    <div className="mt-2 flex items-end justify-between gap-4">
-                      <div>
-                        <div className="text-5xl font-semibold tabular-nums leading-none text-foreground">
-                          {nextDeparture.displayTime}
-                        </div>
-                        <div className="mt-1 text-sm font-semibold text-foreground">
-                          Til {nextDeparture.destination}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Kai: {nextDeparture.quay || "Ukjent"}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col items-end gap-2">
-                        <span className="rounded-full border border-primary/30 bg-white/90 px-3 py-1 text-sm font-semibold text-primary">
-                          {formatMinutesLabel(nextDeparture.minutesUntil)}
-                        </span>
-                        <span
-                          className={`rounded-full px-2 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em] ${nextDeparture.realtime
-                            ? "bg-primary text-primary-foreground"
-                            : "border border-border bg-white text-muted-foreground"}`}
-                        >
-                          {nextDeparture.realtime ? "Live" : "Planlagt"}
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      {isLoading
-                        ? "Henter neste avganger..."
-                        : "Ingen avganger funnet akkurat nå."}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mt-3 flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  <span>Neste avganger</span>
-                  <Separator className="flex-1" />
-                </div>
-
-                <div className="mt-2">
-                  <DepartureList
-                    departures={laterDepartures}
-                    isLoading={isLoading}
-                    emptyMessage={
-                      nextDeparture
-                        ? "Ingen flere avganger akkurat nå."
-                        : "Ingen avganger funnet akkurat nå."
-                    }
-                  />
-                </div>
-              </TabsContent>
-            </Tabs>
-          </section>
-
-          <section className="rounded-2xl border border-border/90 bg-white/75 p-3 text-xs text-muted-foreground">
-            <h2 className="text-sm font-semibold text-foreground">Om siden</h2>
-            <p className="mt-1">
-              Enkel visning inspirert av nesteferje.no, optimalisert for rask sjekk
-              rett før avgang.
+        {/* Main content: 2-column */}
+        <div className="flex-1 min-h-0 grid grid-cols-[1fr_400px] gap-3">
+          {/* Next departure — dominant left panel */}
+          <div className="rounded-2xl border border-primary/20 bg-[linear-gradient(135deg,hsl(202_50%_16%),hsl(218_35%_12%))] p-7 flex flex-col justify-between">
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-primary/60">
+              Neste avgang
             </p>
-            <details className="mt-2">
-              <summary className="cursor-pointer font-medium text-foreground">
-                Vanlige spørsmål
-              </summary>
-              <dl className="mt-2 space-y-1">
+
+            {nextDeparture ? (
+              <>
                 <div>
-                  <dt className="font-medium text-foreground">Hvor ofte oppdateres tidene?</dt>
-                  <dd>Hvert 60. sekund og når fanen blir aktiv igjen.</dd>
+                  <div
+                    className="font-bold tabular-nums leading-none text-foreground"
+                    style={{ fontSize: "clamp(5rem, 11vw, 9.5rem)" }}
+                  >
+                    {nextDeparture.displayTime}
+                  </div>
+                  <div className="mt-3 text-2xl font-semibold text-foreground/90">
+                    Til {nextDeparture.destination}
+                  </div>
+                  <div className="mt-1 text-base text-muted-foreground">
+                    Kai: {nextDeparture.quay || "Ukjent"}
+                  </div>
                 </div>
-                <div>
-                  <dt className="font-medium text-foreground">Vises begge retninger?</dt>
-                  <dd>Ja, for begge sambandene.</dd>
+
+                <div className="flex items-center gap-4">
+                  <span
+                    className="font-bold tabular-nums text-primary"
+                    style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)" }}
+                  >
+                    {formatMinutesLabel(nextDeparture.minutesUntil)}
+                  </span>
+                  <span
+                    className={`rounded-full px-4 py-2 text-sm font-semibold uppercase tracking-wide ${
+                      nextDeparture.realtime
+                        ? "border border-primary/30 bg-primary/15 text-primary"
+                        : "border border-border text-muted-foreground"
+                    }`}
+                  >
+                    {nextDeparture.realtime ? "Live" : "Planlagt"}
+                  </span>
                 </div>
-              </dl>
-            </details>
-          </section>
+              </>
+            ) : (
+              <p className="text-xl text-muted-foreground">
+                {isLoading ? "Henter avganger..." : "Ingen avganger funnet."}
+              </p>
+            )}
+          </div>
+
+          {/* Later departures — right panel */}
+          <div className="flex flex-col gap-2 min-h-0">
+            <p className="shrink-0 text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground px-1">
+              Neste avganger
+            </p>
+            <div className="flex-1 overflow-y-auto">
+              <DepartureList
+                departures={laterDepartures}
+                isLoading={isLoading}
+                emptyMessage={
+                  nextDeparture
+                    ? "Ingen flere avganger akkurat nå."
+                    : "Ingen avganger funnet akkurat nå."
+                }
+              />
+            </div>
+          </div>
         </div>
       </main>
 
