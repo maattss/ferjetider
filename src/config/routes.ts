@@ -121,9 +121,9 @@ export const TRAVEL_DIRECTIONS: TravelDirectionConfig[] = [
     routes: [
       {
         routeKey: "arsvagen_mortavika",
-        directionKey: "arsvagen_to_mortavika",
-        fromLabel: "Arsvågen",
-        toLabel: "Mortavika",
+        directionKey: "mortavika_to_arsvagen",
+        fromLabel: "Mortavika",
+        toLabel: "Arsvågen",
       },
       {
         routeKey: "halhjem_sandvikvag",
@@ -145,9 +145,9 @@ export const TRAVEL_DIRECTIONS: TravelDirectionConfig[] = [
       },
       {
         routeKey: "arsvagen_mortavika",
-        directionKey: "mortavika_to_arsvagen",
-        fromLabel: "Mortavika",
-        toLabel: "Arsvågen",
+        directionKey: "arsvagen_to_mortavika",
+        fromLabel: "Arsvågen",
+        toLabel: "Mortavika",
       },
     ],
   },
