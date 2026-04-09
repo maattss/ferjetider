@@ -64,9 +64,14 @@ export function TrafficAlerts({ alerts, isLoading }: TrafficAlertsProps) {
 
   return (
     <section aria-label="Trafikkvarsler E39" className="space-y-2">
-      <p className="px-1 text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-        Trafikkvarsler E39
-      </p>
+      <div className="flex items-baseline justify-between px-1">
+        <p className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Trafikkvarsler E39
+        </p>
+        <p className="text-[0.6rem] text-muted-foreground/60">
+          Data: Statens vegvesen
+        </p>
+      </div>
       {sorted.map((alert) => (
         <AlertRow key={alert.id} alert={alert} />
       ))}
