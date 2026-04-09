@@ -1,7 +1,6 @@
 import { useDepartures } from "@/hooks/useDepartures";
 import { DepartureList } from "@/components/DepartureList";
 import { StatusBar } from "@/components/StatusBar";
-import { Separator } from "@/components/ui/separator";
 import { formatMinutesLabel } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import type { DirectionKey, RouteKey } from "@/config/routes";
@@ -30,71 +29,79 @@ export function DeparturePanel({
   const laterDepartures = nextDeparture ? departures.slice(1) : departures;
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <h2 className="text-sm font-semibold text-foreground">
+    <div className="flex flex-col gap-2 min-h-0 h-full">
+      <div className="flex items-center justify-between shrink-0">
+        <h2 className="text-base font-bold text-foreground">
           {fromLabel} → {toLabel}
         </h2>
-        <Separator className="flex-1" />
+        <StatusBar
+          updatedAt={data?.updatedAt}
+          error={error}
+          isFallback={isFallback}
+        />
       </div>
 
-      <StatusBar
-        updatedAt={data?.updatedAt}
-        error={error}
-        isFallback={isFallback}
-      />
-
-      <div className="rounded-2xl border border-primary/20 bg-[linear-gradient(120deg,rgba(15,95,143,0.16),rgba(44,155,200,0.16))] p-4">
-        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-primary/90">
+      {/* Next departure — dominant */}
+      <div className="rounded-2xl border border-primary/20 bg-[linear-gradient(135deg,hsl(202_50%_10%),hsl(215_40%_8%))] p-5 flex flex-col justify-between shrink-0">
+        <p className="text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-primary/60">
           Neste avgang
         </p>
 
         {nextDeparture ? (
-          <div className="mt-2 flex items-end justify-between gap-4">
-            <div>
-              <div className="text-5xl font-semibold tabular-nums leading-none text-foreground">
+          <>
+            <div className="mt-2">
+              <div
+                className="font-bold tabular-nums leading-none text-foreground"
+                style={{ fontSize: "clamp(3.5rem, 6.5vw, 6rem)" }}
+              >
                 {nextDeparture.displayTime}
               </div>
-              <div className="mt-1 text-sm font-semibold text-foreground">
+              <div className="mt-2 text-lg font-semibold text-foreground/90">
                 Til {nextDeparture.destination}
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-sm text-muted-foreground">
                 Kai: {nextDeparture.quay || "Ukjent"}
               </div>
             </div>
 
-            <div className="flex flex-col items-end gap-2">
-              <span className="rounded-full border border-primary/30 bg-card/90 px-3 py-1 text-sm font-semibold text-primary">
+            <div className="mt-4 flex items-center gap-3">
+              <span
+                className="font-bold tabular-nums text-primary"
+                style={{ fontSize: "clamp(1.8rem, 3.5vw, 3rem)" }}
+              >
                 {formatMinutesLabel(nextDeparture.minutesUntil)}
               </span>
               <span
                 className={cn(
-                  "rounded-full px-2 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em]",
+                  "rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide",
                   nextDeparture.realtime
-                    ? "bg-primary text-primary-foreground"
-                    : "border border-border bg-card text-muted-foreground",
+                    ? "border border-primary/30 bg-primary/15 text-primary"
+                    : "border border-border text-muted-foreground",
                 )}
               >
                 {nextDeparture.realtime ? "Live" : "Planlagt"}
               </span>
             </div>
-          </div>
+          </>
         ) : (
-          <p className="mt-2 text-sm text-muted-foreground">
-            {isLoading ? "Henter neste avganger..." : "Ingen avganger funnet akkurat nå."}
+          <p className="mt-4 text-base text-muted-foreground">
+            {isLoading ? "Henter avganger..." : "Ingen avganger funnet akkurat nå."}
           </p>
         )}
       </div>
 
-      <DepartureList
-        departures={laterDepartures}
-        isLoading={isLoading}
-        emptyMessage={
-          nextDeparture
-            ? "Ingen flere avganger akkurat nå."
-            : "Ingen avganger funnet akkurat nå."
-        }
-      />
+      {/* Later departures */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <DepartureList
+          departures={laterDepartures}
+          isLoading={isLoading}
+          emptyMessage={
+            nextDeparture
+              ? "Ingen flere avganger akkurat nå."
+              : "Ingen avganger funnet akkurat nå."
+          }
+        />
+      </div>
     </div>
   );
 }
