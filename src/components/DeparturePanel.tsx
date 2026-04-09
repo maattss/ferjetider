@@ -42,7 +42,9 @@ export function DeparturePanel({
       </div>
 
       {/* Next departure — dominant */}
-      <div className="rounded-2xl border border-primary/20 bg-[linear-gradient(135deg,hsl(202_50%_10%),hsl(215_40%_8%))] p-5 flex flex-col justify-between shrink-0">
+      <div className="next-departure-card rounded-2xl border border-primary/20 bg-[linear-gradient(135deg,hsl(202_55%_11%),hsl(215_45%_8%))] p-5 flex flex-col justify-between shrink-0 overflow-hidden relative">
+        {/* Subtle water shimmer overlay */}
+        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,hsl(200_85%_58%_/_0.06),transparent)]" aria-hidden="true" />
         <p className="text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-primary/60">
           Neste avgang
         </p>
