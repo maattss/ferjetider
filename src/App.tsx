@@ -287,21 +287,13 @@ export default function App(): JSX.Element {
       {/* Ocean wave decoration */}
       <div className="ocean-strip pointer-events-none fixed bottom-0 left-0 right-0 h-20 overflow-hidden" aria-hidden="true">
         <div className="wave-track wave-track-slow flex" style={{ width: "200%" }}>
-          <svg viewBox="0 0 1440 72" fill="none" className="h-20 w-1/2 shrink-0">
-            <path d="M0 36C240 10 480 62 720 36C960 10 1200 62 1440 36V72H0Z" fill="hsl(200 85% 58% / 0.08)" />
-            <path d="M0 50C180 24 360 70 540 50C720 24 900 70 1080 50C1260 24 1440 50 1440 50V72H0Z" fill="hsl(200 85% 58% / 0.05)" />
+          <svg viewBox="0 0 1440 80" fill="none" className="h-20 w-1/2 shrink-0">
+            <path d="M0 52C180 30 360 72 540 52C720 30 900 72 1080 52C1260 30 1440 52 1440 52V80H0Z" fill="hsl(200 85% 60% / 0.07)" />
+            <path d="M0 62C240 44 480 78 720 62C960 44 1200 78 1440 62V80H0Z" fill="hsl(200 85% 60% / 0.11)" />
           </svg>
-          <svg viewBox="0 0 1440 72" fill="none" className="h-20 w-1/2 shrink-0">
-            <path d="M0 36C240 10 480 62 720 36C960 10 1200 62 1440 36V72H0Z" fill="hsl(200 85% 58% / 0.08)" />
-            <path d="M0 50C180 24 360 70 540 50C720 24 900 70 1080 50C1260 24 1440 50 1440 50V72H0Z" fill="hsl(200 85% 58% / 0.05)" />
-          </svg>
-        </div>
-        <div className="wave-track wave-track-fast flex opacity-80" style={{ width: "200%" }}>
-          <svg viewBox="0 0 1440 72" fill="none" className="h-16 w-1/2 shrink-0">
-            <path d="M0 42C160 18 320 58 480 42C640 26 800 62 960 42C1120 22 1280 56 1440 42V72H0Z" fill="hsl(190 90% 64% / 0.06)" />
-          </svg>
-          <svg viewBox="0 0 1440 72" fill="none" className="h-16 w-1/2 shrink-0">
-            <path d="M0 42C160 18 320 58 480 42C640 26 800 62 960 42C1120 22 1280 56 1440 42V72H0Z" fill="hsl(190 90% 64% / 0.06)" />
+          <svg viewBox="0 0 1440 80" fill="none" className="h-20 w-1/2 shrink-0">
+            <path d="M0 52C180 30 360 72 540 52C720 30 900 72 1080 52C1260 30 1440 52 1440 52V80H0Z" fill="hsl(200 85% 60% / 0.07)" />
+            <path d="M0 62C240 44 480 78 720 62C960 44 1200 78 1440 62V80H0Z" fill="hsl(200 85% 60% / 0.11)" />
           </svg>
         </div>
       </div>

@@ -184,14 +184,6 @@ body {
   }
 }
 
-@keyframes wave-drift-fast {
-  from {
-    transform: translateX(-5%);
-  }
-  to {
-    transform: translateX(-55%);
-  }
-}
 
 .app-shell {
   position: relative;
@@ -427,7 +419,7 @@ body {
 }
 
 .ocean-strip {
-  mask-image: linear-gradient(to top, black 65%, transparent 100%);
+  mask-image: linear-gradient(to top, black 40%, transparent 100%);
 }
 
 .wave-track {
@@ -437,12 +429,7 @@ body {
 
 .wave-track-slow {
   bottom: 0;
-  animation: wave-drift-slow 18s linear infinite;
-}
-
-.wave-track-fast {
-  bottom: 0.35rem;
-  animation: wave-drift-fast 11s linear infinite;
+  animation: wave-drift-slow 22s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -459,8 +446,7 @@ body {
   .ferry-icon,
   .next-departure-card::before,
   .next-departure-card::after,
-  .wave-track-slow,
-  .wave-track-fast {
+  .wave-track-slow {
     animation: none !important;
   }
 }
