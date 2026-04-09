@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { TrafficAlert, AlertType } from "@/types/traffic";
 import { formatOsloTime } from "@/lib/time";
 
@@ -29,11 +30,20 @@ const TYPE_CONFIG: Record<AlertType, { label: string; classes: string; dot: stri
   },
 };
 
-function AlertRow({ alert }: { alert: TrafficAlert }) {
+function AlertRow({
+  alert,
+  index,
+}: {
+  alert: TrafficAlert;
+  index: number;
+}) {
   const cfg = TYPE_CONFIG[alert.type];
 
   return (
-    <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${cfg.classes}`}>
+    <div
+      className={`traffic-alert-row flex items-start gap-3 rounded-xl border px-4 py-3 transition-transform duration-300 hover:-translate-y-0.5 ${cfg.classes}`}
+      style={{ "--alert-index": index } as CSSProperties}
+    >
       <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${cfg.dot}`} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
@@ -63,7 +73,7 @@ export function TrafficAlerts({ alerts, isLoading }: TrafficAlertsProps) {
   if (isLoading || sorted.length === 0) return null;
 
   return (
-    <section aria-label="Trafikkvarsler E39" className="space-y-2">
+    <section aria-label="Trafikkvarsler E39" className="traffic-alerts space-y-2">
       <div className="flex items-baseline justify-between px-1">
         <p className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           Trafikkvarsler E39
@@ -72,8 +82,8 @@ export function TrafficAlerts({ alerts, isLoading }: TrafficAlertsProps) {
           Data: Statens vegvesen
         </p>
       </div>
-      {sorted.map((alert) => (
-        <AlertRow key={alert.id} alert={alert} />
+      {sorted.map((alert, index) => (
+        <AlertRow key={alert.id} alert={alert} index={index} />
       ))}
     </section>
   );

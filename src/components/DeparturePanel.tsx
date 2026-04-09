@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { useDepartures } from "@/hooks/useDepartures";
 import { DepartureList } from "@/components/DepartureList";
 import { StatusBar } from "@/components/StatusBar";
@@ -10,6 +11,7 @@ interface DeparturePanelProps {
   directionKey: DirectionKey;
   fromLabel: string;
   toLabel: string;
+  panelIndex: number;
 }
 
 export function DeparturePanel({
@@ -17,8 +19,9 @@ export function DeparturePanel({
   directionKey,
   fromLabel,
   toLabel,
+  panelIndex,
 }: DeparturePanelProps): JSX.Element {
-  const { data, error, isFallback, isLoading } = useDepartures({
+  const { data, error, isFallback, isFetching, isLoading } = useDepartures({
     routeKey,
     directionKey,
     limit: 6,
@@ -29,7 +32,10 @@ export function DeparturePanel({
   const laterDepartures = nextDeparture ? departures.slice(1) : departures;
 
   return (
-    <div className="flex flex-col gap-2 min-h-0 h-full">
+    <div
+      className="departure-panel flex flex-col gap-2 min-h-0 h-full"
+      style={{ "--panel-index": panelIndex } as CSSProperties}
+    >
       <div className="flex items-center justify-between shrink-0">
         <h2 className="text-base font-bold text-foreground">
           {fromLabel} → {toLabel}
@@ -38,19 +44,23 @@ export function DeparturePanel({
           updatedAt={data?.updatedAt}
           error={error}
           isFallback={isFallback}
+          isFetching={isFetching}
         />
       </div>
 
-      {/* Next departure — dominant */}
-      <div className="next-departure-card rounded-2xl border border-primary/20 bg-[linear-gradient(135deg,hsl(202_55%_11%),hsl(215_45%_8%))] p-5 flex flex-col justify-between shrink-0 overflow-hidden relative">
-        {/* Subtle water shimmer overlay */}
-        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,hsl(200_85%_58%_/_0.06),transparent)]" aria-hidden="true" />
+      <div
+        className="next-departure-card rounded-2xl border border-primary/20 bg-[linear-gradient(135deg,hsl(202_55%_11%),hsl(215_45%_8%))] p-5 flex flex-col justify-between shrink-0 overflow-hidden relative"
+        data-fetching={isFetching ? "true" : "false"}
+      >
         <p className="text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-primary/60">
           Neste avgang
         </p>
 
         {nextDeparture ? (
-          <>
+          <div
+            key={nextDeparture.departureTimeIso}
+            className="next-departure-main flex flex-1 flex-col justify-between"
+          >
             <div className="mt-2">
               <div
                 className="font-bold tabular-nums leading-none text-foreground"
@@ -84,9 +94,9 @@ export function DeparturePanel({
                 {nextDeparture.realtime ? "Live" : "Planlagt"}
               </span>
             </div>
-          </>
+          </div>
         ) : (
-          <p className="mt-4 text-base text-muted-foreground">
+          <p className="mt-4 text-base text-muted-foreground transition-opacity duration-300">
             {isLoading ? "Henter avganger..." : "Ingen avganger funnet akkurat nå."}
           </p>
         )}

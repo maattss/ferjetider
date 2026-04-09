@@ -221,8 +221,8 @@ export default function App(): JSX.Element {
 
   return (
     <>
-      <main className="h-screen overflow-hidden bg-background p-3 text-foreground flex flex-col gap-3">
-        <header className="flex items-center justify-between rounded-2xl border border-primary/10 bg-[linear-gradient(135deg,hsl(215_55%_9%),hsl(210_50%_7%))] px-5 py-3 shrink-0">
+      <main className="app-shell h-screen overflow-hidden bg-background p-3 text-foreground flex flex-col gap-3">
+        <header className="hero-header flex items-center justify-between rounded-2xl border border-primary/10 bg-[linear-gradient(135deg,hsl(215_55%_9%),hsl(210_50%_7%))] px-5 py-3 shrink-0">
           <div className="flex items-center gap-4">
             <div>
               <p className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary/60">
@@ -230,7 +230,7 @@ export default function App(): JSX.Element {
               </p>
               <h1 className="text-xl font-bold tracking-tight">Bergen–Stavanger</h1>
             </div>
-            <FerryIcon className="h-8 w-12 text-primary/65 animate-bob" />
+            <FerryIcon className="ferry-icon h-8 w-12 text-primary/65" />
           </div>
           <p className="text-sm text-muted-foreground">
             Arsvågen ↔ Mortavika · Halhjem ↔ Sandvikvåg
@@ -248,12 +248,12 @@ export default function App(): JSX.Element {
           }}
           className="flex-1 min-h-0 flex flex-col gap-3"
         >
-          <TabsList className="grid h-auto w-full grid-cols-2 rounded-2xl bg-secondary p-1.5 shrink-0">
+          <TabsList className="route-tabs-list grid h-auto w-full grid-cols-2 rounded-2xl bg-secondary p-1.5 shrink-0">
             {TRAVEL_DIRECTIONS.map((td) => (
               <TabsTrigger
                 key={td.key}
                 value={td.key}
-                className="h-auto rounded-xl py-3 text-base font-semibold leading-tight data-[state=active]:bg-card data-[state=active]:shadow-none"
+                className="route-tabs-trigger h-auto rounded-xl py-3 text-base font-semibold leading-tight data-[state=active]:bg-card data-[state=active]:shadow-none"
               >
                 {td.label}
               </TabsTrigger>
@@ -264,16 +264,17 @@ export default function App(): JSX.Element {
             <TabsContent
               key={td.key}
               value={td.key}
-              className="flex-1 min-h-0 mt-0 grid grid-cols-2 gap-3 data-[state=inactive]:hidden"
+              className="tab-panel flex-1 min-h-0 mt-0 grid grid-cols-2 gap-3 data-[state=inactive]:hidden"
               forceMount
             >
-              {td.routes.map((route) => (
+              {td.routes.map((route, panelIndex) => (
                 <DeparturePanel
                   key={`${route.routeKey}-${route.directionKey}`}
                   routeKey={route.routeKey}
                   directionKey={route.directionKey}
                   fromLabel={route.fromLabel}
                   toLabel={route.toLabel}
+                  panelIndex={panelIndex}
                 />
               ))}
             </TabsContent>
@@ -284,15 +285,23 @@ export default function App(): JSX.Element {
       <Analytics />
 
       {/* Ocean wave decoration */}
-      <div className="pointer-events-none fixed bottom-0 left-0 right-0 h-16 overflow-hidden" aria-hidden="true">
-        <div className="animate-wave-scroll flex" style={{ width: "200%" }}>
-          <svg viewBox="0 0 1440 64" fill="none" className="h-16 w-1/2 shrink-0">
-            <path d="M0 32C240 8 480 56 720 32C960 8 1200 56 1440 32V64H0Z" fill="hsl(200 85% 58% / 0.07)" />
-            <path d="M0 44C180 22 360 66 540 44C720 22 900 66 1080 44C1260 22 1440 44 1440 44V64H0Z" fill="hsl(200 85% 58% / 0.04)" />
+      <div className="ocean-strip pointer-events-none fixed bottom-0 left-0 right-0 h-20 overflow-hidden" aria-hidden="true">
+        <div className="wave-track wave-track-slow flex" style={{ width: "200%" }}>
+          <svg viewBox="0 0 1440 72" fill="none" className="h-20 w-1/2 shrink-0">
+            <path d="M0 36C240 10 480 62 720 36C960 10 1200 62 1440 36V72H0Z" fill="hsl(200 85% 58% / 0.08)" />
+            <path d="M0 50C180 24 360 70 540 50C720 24 900 70 1080 50C1260 24 1440 50 1440 50V72H0Z" fill="hsl(200 85% 58% / 0.05)" />
           </svg>
-          <svg viewBox="0 0 1440 64" fill="none" className="h-16 w-1/2 shrink-0">
-            <path d="M0 32C240 8 480 56 720 32C960 8 1200 56 1440 32V64H0Z" fill="hsl(200 85% 58% / 0.07)" />
-            <path d="M0 44C180 22 360 66 540 44C720 22 900 66 1080 44C1260 22 1440 44 1440 44V64H0Z" fill="hsl(200 85% 58% / 0.04)" />
+          <svg viewBox="0 0 1440 72" fill="none" className="h-20 w-1/2 shrink-0">
+            <path d="M0 36C240 10 480 62 720 36C960 10 1200 62 1440 36V72H0Z" fill="hsl(200 85% 58% / 0.08)" />
+            <path d="M0 50C180 24 360 70 540 50C720 24 900 70 1080 50C1260 24 1440 50 1440 50V72H0Z" fill="hsl(200 85% 58% / 0.05)" />
+          </svg>
+        </div>
+        <div className="wave-track wave-track-fast flex opacity-80" style={{ width: "200%" }}>
+          <svg viewBox="0 0 1440 72" fill="none" className="h-16 w-1/2 shrink-0">
+            <path d="M0 42C160 18 320 58 480 42C640 26 800 62 960 42C1120 22 1280 56 1440 42V72H0Z" fill="hsl(190 90% 64% / 0.06)" />
+          </svg>
+          <svg viewBox="0 0 1440 72" fill="none" className="h-16 w-1/2 shrink-0">
+            <path d="M0 42C160 18 320 58 480 42C640 26 800 62 960 42C1120 22 1280 56 1440 42V72H0Z" fill="hsl(190 90% 64% / 0.06)" />
           </svg>
         </div>
       </div>

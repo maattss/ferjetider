@@ -23,6 +23,7 @@
   --input: 215 35% 16%;
   --ring: 200 85% 58%;
   --radius: 0.85rem;
+  --motion-spring: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 * {
@@ -46,15 +47,420 @@ body {
     radial-gradient(ellipse 100% 50% at 50% 100%, hsl(215 65% 5%) 0%, transparent 70%);
 }
 
-@keyframes card-glow {
-  0%, 100% {
-    box-shadow: 0 0 0 0px transparent, 0 4px 24px hsl(200 85% 58% / 0.04);
+@keyframes hero-settle {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
   }
-  50% {
-    box-shadow: 0 0 28px 4px hsl(200 85% 58% / 0.1), 0 4px 32px hsl(200 85% 58% / 0.08);
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
+@keyframes ambient-float {
+  0%,
+  100% {
+    transform: translate3d(-2%, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, 8%, 0) scale(1.04);
+  }
+}
+
+@keyframes ferry-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-2deg);
+  }
+  50% {
+    transform: translate3d(0, -4px, 0) rotate(1.5deg);
+  }
+}
+
+@keyframes tab-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes panel-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes row-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes alert-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes card-aura {
+  0%,
+  100% {
+    opacity: 0.42;
+    transform: translate3d(-2%, 0, 0) scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translate3d(2%, -4%, 0) scale(1.05);
+  }
+}
+
+@keyframes card-sheen {
+  from {
+    background-position: 140% 0;
+  }
+  to {
+    background-position: -140% 0;
+  }
+}
+
+@keyframes next-refresh {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes status-ping {
+  0% {
+    box-shadow: 0 0 0 0 hsl(200 85% 58% / 0.34);
+  }
+  70% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes wave-drift-slow {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes wave-drift-fast {
+  from {
+    transform: translateX(-5%);
+  }
+  to {
+    transform: translateX(-55%);
+  }
+}
+
+.app-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.app-shell::before {
+  content: "";
+  position: absolute;
+  inset: -8% 18% auto;
+  height: 14rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle, hsl(190 100% 72% / 0.18) 0%, transparent 70%);
+  filter: blur(36px);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: -1;
+  animation: ambient-float 18s ease-in-out infinite;
+}
+
+.hero-header {
+  backdrop-filter: blur(14px);
+  box-shadow:
+    0 18px 40px hsl(215 75% 2% / 0.28),
+    inset 0 1px 0 hsl(200 90% 70% / 0.08);
+  animation: hero-settle 680ms var(--motion-spring) both;
+}
+
+.ferry-icon {
+  transform-origin: 50% 72%;
+  filter: drop-shadow(0 12px 18px hsl(200 85% 58% / 0.12));
+  animation: ferry-drift 5.6s ease-in-out infinite;
+}
+
+.traffic-alerts {
+  animation: hero-settle 520ms var(--motion-spring) both;
+}
+
+.traffic-alert-row {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.traffic-alerts .traffic-alert-row {
+  animation: alert-rise 420ms var(--motion-spring) both;
+  animation-delay: calc(40ms + var(--alert-index, 0) * 70ms);
+}
+
+.route-tabs-list {
+  box-shadow:
+    inset 0 1px 0 hsl(210 100% 98% / 0.02),
+    0 12px 24px hsl(215 55% 3% / 0.22);
+}
+
+.route-tabs-trigger {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 240ms var(--motion-spring),
+    background-color 240ms ease,
+    color 240ms ease,
+    box-shadow 240ms ease;
+}
+
+.route-tabs-trigger::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 0.55rem;
+  height: 2px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, transparent, hsl(200 92% 72%), transparent);
+  opacity: 0;
+  transform: scaleX(0.35);
+  transform-origin: center;
+  transition:
+    transform 220ms var(--motion-spring),
+    opacity 220ms ease;
+}
+
+.route-tabs-trigger:hover {
+  color: hsl(var(--foreground));
+}
+
+.route-tabs-trigger[data-state="active"] {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 hsl(210 100% 98% / 0.04),
+    0 10px 24px hsl(215 75% 3% / 0.24);
+}
+
+.route-tabs-trigger[data-state="active"]::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.tab-panel[data-state="active"] {
+  animation: tab-panel-in 360ms var(--motion-spring) both;
+}
+
+.departure-panel {
+  opacity: 0;
+  transform: translateY(18px) scale(0.985);
+}
+
+.tab-panel[data-state="active"] .departure-panel {
+  animation: panel-rise 520ms var(--motion-spring) both;
+  animation-delay: calc(60ms + var(--panel-index, 0) * 90ms);
+}
+
+.departure-list-row {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.tab-panel[data-state="active"] .departure-list-row {
+  animation: row-rise 420ms var(--motion-spring) both;
+  animation-delay: calc(180ms + var(--panel-index, 0) * 90ms + var(--row-index, 0) * 55ms);
+}
+
 .next-departure-card {
-  animation: card-glow 4s ease-in-out infinite;
+  isolation: isolate;
+  box-shadow: 0 22px 46px hsl(215 70% 2% / 0.28);
+  transition:
+    transform 320ms var(--motion-spring),
+    box-shadow 320ms ease,
+    border-color 320ms ease;
+}
+
+.next-departure-card::before {
+  content: "";
+  position: absolute;
+  inset: -18% -10% auto;
+  height: 72%;
+  background: radial-gradient(circle at 50% 40%, hsl(190 100% 72% / 0.18) 0%, transparent 62%);
+  filter: blur(10px);
+  opacity: 0.6;
+  pointer-events: none;
+  animation: card-aura 7.5s ease-in-out infinite;
+}
+
+.next-departure-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 14%,
+    hsl(200 90% 74% / 0.08) 36%,
+    transparent 58%
+  );
+  background-size: 180% 100%;
+  background-position: 140% 0;
+  mix-blend-mode: screen;
+  opacity: 0.5;
+  pointer-events: none;
+  animation: card-sheen 12s linear infinite;
+}
+
+.next-departure-card[data-fetching="true"]::after {
+  opacity: 0.82;
+  animation-duration: 2.6s;
+}
+
+.next-departure-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 28px 56px hsl(215 70% 2% / 0.34);
+  border-color: hsl(200 85% 58% / 0.3);
+}
+
+.next-departure-main {
+  animation: next-refresh 520ms var(--motion-spring) both;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid hsl(var(--border) / 0.75);
+  background: hsl(215 32% 10% / 0.82);
+  backdrop-filter: blur(10px);
+  transition:
+    color 220ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease;
+}
+
+.status-pill[data-tone="live"] {
+  border-color: hsl(200 85% 58% / 0.18);
+}
+
+.status-pill[data-tone="syncing"] {
+  border-color: hsl(200 85% 58% / 0.28);
+  background: hsl(200 42% 12% / 0.84);
+}
+
+.status-pill[data-tone="fallback"] {
+  border-color: hsl(40 96% 55% / 0.22);
+  background: hsl(38 52% 12% / 0.8);
+}
+
+.status-pill[data-tone="error"] {
+  border-color: hsl(0 73% 52% / 0.28);
+  background: hsl(0 48% 12% / 0.82);
+}
+
+.status-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 9999px;
+  background: currentColor;
+  box-shadow: 0 0 0 0 transparent;
+  flex: none;
+}
+
+.status-pill[data-tone="live"] .status-dot,
+.status-pill[data-tone="syncing"] .status-dot {
+  animation: status-ping 1.8s ease-out infinite;
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    110deg,
+    hsl(215 28% 15%) 8%,
+    hsl(210 24% 22%) 18%,
+    hsl(215 28% 15%) 33%
+  );
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 1.4s linear infinite;
+}
+
+.ocean-strip {
+  mask-image: linear-gradient(to top, black 65%, transparent 100%);
+}
+
+.wave-track {
+  position: absolute;
+  inset: auto 0 0;
+}
+
+.wave-track-slow {
+  bottom: 0;
+  animation: wave-drift-slow 18s linear infinite;
+}
+
+.wave-track-fast {
+  bottom: 0.35rem;
+  animation: wave-drift-fast 11s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .app-shell::before,
+  .ferry-icon,
+  .next-departure-card::before,
+  .next-departure-card::after,
+  .wave-track-slow,
+  .wave-track-fast {
+    animation: none !important;
+  }
 }

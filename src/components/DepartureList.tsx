@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 import { formatMinutesLabel } from "@/lib/time";
 import type { Departure } from "@/types/departures";
@@ -40,18 +41,19 @@ export function DepartureList({
 
   if (departures.length === 0) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
+      <div className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground transition-all duration-300">
         {emptyMessage}
       </div>
     );
   }
 
   return (
-    <ul className="overflow-hidden rounded-2xl border border-border bg-card">
-      {departures.map((departure) => (
+    <ul className="overflow-hidden rounded-2xl border border-border bg-card/95 backdrop-blur-sm">
+      {departures.map((departure, index) => (
         <li
           key={`${departure.departureTimeIso}-${departure.destination}-${departure.quay}`}
-          className="grid grid-cols-[96px_1fr_auto] items-center gap-3 border-b border-border/60 px-4 py-4 last:border-b-0"
+          className="departure-list-row grid grid-cols-[96px_1fr_auto] items-center gap-3 border-b border-border/60 px-4 py-4 last:border-b-0 transition-colors duration-300 hover:bg-secondary/35"
+          style={{ "--row-index": index } as CSSProperties}
         >
           <div className="text-[2.2rem] font-bold tabular-nums leading-none text-foreground">
             {departure.displayTime}
