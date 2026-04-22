@@ -1,8 +1,6 @@
+import { useEffect, useState } from "react";
 import { useDepartures } from "@/hooks/useDepartures";
 import { DepartureList } from "@/components/DepartureList";
-import { StatusBar } from "@/components/StatusBar";
-import { formatMinutesLabel } from "@/lib/time";
-import { cn } from "@/lib/utils";
 import type { DirectionKey, RouteKey } from "@/config/routes";
 
 interface DeparturePanelProps {
@@ -10,6 +8,52 @@ interface DeparturePanelProps {
   directionKey: DirectionKey;
   fromLabel: string;
   toLabel: string;
+  sambandName: string;
+  fromRegion: string;
+}
+
+function pad(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+function useNow(): Date {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  return now;
+}
+
+function StatusIndicator({
+  isFallback,
+  hasError,
+}: {
+  isFallback: boolean;
+  hasError: boolean;
+}): JSX.Element {
+  if (hasError && !isFallback) {
+    return (
+      <div className="status-pill err">
+        <span className="dot err" />
+        FEIL
+      </div>
+    );
+  }
+  if (isFallback) {
+    return (
+      <div className="status-pill">
+        <span className="dot warn" />
+        LAGRET
+      </div>
+    );
+  }
+  return (
+    <div className="live-dot">
+      <span />
+      LIVE
+    </div>
+  );
 }
 
 export function DeparturePanel({
@@ -17,91 +61,99 @@ export function DeparturePanel({
   directionKey,
   fromLabel,
   toLabel,
+  sambandName,
+  fromRegion,
 }: DeparturePanelProps): JSX.Element {
   const { data, error, isFallback, isLoading } = useDepartures({
     routeKey,
     directionKey,
-    limit: 6,
+    limit: 7,
   });
 
+  const now = useNow();
   const departures = data?.departures ?? [];
   const nextDeparture = departures[0];
-  const laterDepartures = nextDeparture ? departures.slice(1) : departures;
+  const laterDepartures = nextDeparture ? departures.slice(1, 7) : [];
+
+  const nextTime = nextDeparture ? new Date(nextDeparture.departureTimeIso) : null;
+  const diffMs = nextTime ? nextTime.getTime() - now.getTime() : 0;
+  const minsTo = Math.max(0, Math.floor(diffMs / 60000));
+  const secsTo = Math.max(0, Math.floor((diffMs % 60000) / 1000));
+  const isImminent = nextTime !== null && diffMs < 90_000;
+  const isSoon = nextTime !== null && diffMs < 5 * 60_000;
+
+  const progressPct = Math.max(
+    0,
+    Math.min(100, 100 - (minsTo / 20) * 100),
+  );
+
+  const clockLabel = nextTime
+    ? `${pad(nextTime.getHours())}:${pad(nextTime.getMinutes())}`
+    : "--:--";
 
   return (
-    <div className="flex flex-col gap-2 min-h-0 h-full">
-      <div className="flex items-center justify-between shrink-0">
-        <h2 className="text-base font-bold text-foreground">
-          {fromLabel} → {toLabel}
-        </h2>
-        <StatusBar
-          updatedAt={data?.updatedAt}
-          error={error}
+    <section className="samband-card">
+      <header className="samband-head">
+        <div className="samband-crumbs">
+          <span className="samband-name">{sambandName}</span>
+          <span className="sep">·</span>
+          <span className="samband-route">
+            {fromLabel} → {toLabel}
+          </span>
+        </div>
+        <StatusIndicator
           isFallback={isFallback}
+          hasError={error !== null}
         />
-      </div>
+      </header>
 
-      {/* Next departure — dominant */}
-      <div className="rounded-2xl border border-primary/20 bg-[linear-gradient(135deg,hsl(202_50%_10%),hsl(215_40%_8%))] p-5 flex flex-col justify-between shrink-0">
-        <p className="text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-primary/60">
-          Neste avgang
-        </p>
-
-        {nextDeparture ? (
-          <>
-            <div className="mt-2">
-              <div
-                className="font-bold tabular-nums leading-none text-foreground"
-                style={{ fontSize: "clamp(3.5rem, 6.5vw, 6rem)" }}
-              >
-                {nextDeparture.displayTime}
-              </div>
-              <div className="mt-2 text-lg font-semibold text-foreground/90">
-                Til {nextDeparture.destination}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Kai: {nextDeparture.quay || "Ukjent"}
+      {nextDeparture ? (
+        <div
+          className={`next-block ${
+            isImminent ? "imminent" : isSoon ? "soon" : ""
+          }`}
+        >
+          <div className="next-label">Neste avgang</div>
+          <div className="next-clock tabular">{clockLabel}</div>
+          <div className="next-countdown-row">
+            <div className="countdown">
+              <span className="cd-num tabular">{minsTo}</span>
+              <span className="cd-unit">min</span>
+              {minsTo < 10 && (
+                <span className="cd-secs tabular">:{pad(secsTo)}</span>
+              )}
+            </div>
+            <div className="countdown-meta">
+              <div>Fra {fromLabel}</div>
+              <div className="muted">
+                Kai: {nextDeparture.quay || `${fromRegion} ferjekai`}
               </div>
             </div>
+          </div>
+          <div className="progress-track" aria-hidden="true">
+            <div
+              className="progress-fill"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="next-block empty">
+          <div className="next-label">
+            {isLoading ? "Henter avganger…" : "Ingen planlagte avganger"}
+          </div>
+        </div>
+      )}
 
-            <div className="mt-4 flex items-center gap-3">
-              <span
-                className="font-bold tabular-nums text-primary"
-                style={{ fontSize: "clamp(1.8rem, 3.5vw, 3rem)" }}
-              >
-                {formatMinutesLabel(nextDeparture.minutesUntil)}
-              </span>
-              <span
-                className={cn(
-                  "rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide",
-                  nextDeparture.realtime
-                    ? "border border-primary/30 bg-primary/15 text-primary"
-                    : "border border-border text-muted-foreground",
-                )}
-              >
-                {nextDeparture.realtime ? "Live" : "Planlagt"}
-              </span>
-            </div>
-          </>
-        ) : (
-          <p className="mt-4 text-base text-muted-foreground">
-            {isLoading ? "Henter avganger..." : "Ingen avganger funnet akkurat nå."}
-          </p>
-        )}
-      </div>
-
-      {/* Later departures */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="upcoming">
+        <div className="upcoming-head">Videre avganger</div>
         <DepartureList
           departures={laterDepartures}
-          isLoading={isLoading}
-          emptyMessage={
-            nextDeparture
-              ? "Ingen flere avganger akkurat nå."
-              : "Ingen avganger funnet akkurat nå."
-          }
+          isLoading={isLoading && !nextDeparture}
+          toLabel={toLabel}
+          now={now}
         />
       </div>
-    </div>
+    </section>
   );
 }

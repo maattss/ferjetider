@@ -106,6 +106,8 @@ export interface TravelDirectionRoute {
   directionKey: DirectionKey;
   fromLabel: string;
   toLabel: string;
+  sambandName: string;
+  fromRegion: string;
 }
 
 export interface TravelDirectionConfig {
@@ -124,12 +126,16 @@ export const TRAVEL_DIRECTIONS: TravelDirectionConfig[] = [
         directionKey: "mortavika_to_arsvagen",
         fromLabel: "Mortavika",
         toLabel: "Arsvågen",
+        sambandName: "Boknafjorden",
+        fromRegion: "Rennesøy",
       },
       {
         routeKey: "halhjem_sandvikvag",
         directionKey: "sandvikvag_to_halhjem",
         fromLabel: "Sandvikvåg",
         toLabel: "Halhjem",
+        sambandName: "Langenuen",
+        fromRegion: "Fitjar/Stord",
       },
     ],
   },
@@ -142,12 +148,16 @@ export const TRAVEL_DIRECTIONS: TravelDirectionConfig[] = [
         directionKey: "halhjem_to_sandvikvag",
         fromLabel: "Halhjem",
         toLabel: "Sandvikvåg",
+        sambandName: "Langenuen",
+        fromRegion: "Os",
       },
       {
         routeKey: "arsvagen_mortavika",
         directionKey: "arsvagen_to_mortavika",
         fromLabel: "Arsvågen",
         toLabel: "Mortavika",
+        sambandName: "Boknafjorden",
+        fromRegion: "Bokn",
       },
     ],
   },

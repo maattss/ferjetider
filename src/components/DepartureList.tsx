@@ -1,28 +1,40 @@
-import { cn } from "@/lib/utils";
-import { formatMinutesLabel } from "@/lib/time";
 import type { Departure } from "@/types/departures";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface DepartureListProps {
   departures: Departure[];
   isLoading: boolean;
-  emptyMessage?: string;
+  toLabel: string;
+  now: Date;
+}
+
+function pad(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+function formatRelative(departureIso: string, now: Date): string {
+  const diffMs = new Date(departureIso).getTime() - now.getTime();
+  const mins = Math.max(0, Math.floor(diffMs / 60000));
+  if (mins >= 60) {
+    const hours = Math.floor(mins / 60);
+    const mm = mins % 60;
+    return `${hours}t ${pad(mm)}m`;
+  }
+  return `${mins} min`;
+}
+
+function formatHm(departureIso: string): string {
+  const d = new Date(departureIso);
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function LoadingRows(): JSX.Element {
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div
-          key={`loading-row-${index}`}
-          className="grid grid-cols-[96px_1fr_64px] items-center gap-3 border-b border-border/60 px-4 py-4 last:border-b-0"
-        >
-          <Skeleton className="h-10 w-18" />
-          <div className="space-y-1">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-3 w-20" />
-          </div>
-          <Skeleton className="h-6 w-12 justify-self-end" />
+    <div className="upcoming-skeleton" aria-hidden="true">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="sk-row">
+          <span className="sk-bar tall" />
+          <span className="sk-bar" />
+          <span className="sk-bar" style={{ width: 60 }} />
         </div>
       ))}
     </div>
@@ -32,7 +44,8 @@ function LoadingRows(): JSX.Element {
 export function DepartureList({
   departures,
   isLoading,
-  emptyMessage = "Ingen avganger funnet akkurat nå.",
+  toLabel,
+  now,
 }: DepartureListProps): JSX.Element {
   if (isLoading && departures.length === 0) {
     return <LoadingRows />;
@@ -40,47 +53,24 @@ export function DepartureList({
 
   if (departures.length === 0) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
-        {emptyMessage}
-      </div>
+      <p className="upcoming-empty">Ingen flere avganger i horisonten.</p>
     );
   }
 
   return (
-    <ul className="overflow-hidden rounded-2xl border border-border bg-card">
-      {departures.map((departure) => (
+    <ol className="upcoming-list">
+      {departures.map((d) => (
         <li
-          key={`${departure.departureTimeIso}-${departure.destination}-${departure.quay}`}
-          className="grid grid-cols-[96px_1fr_auto] items-center gap-3 border-b border-border/60 px-4 py-4 last:border-b-0"
+          key={`${d.departureTimeIso}-${d.destination}-${d.quay}`}
+          className="upcoming-row"
         >
-          <div className="text-[2.2rem] font-bold tabular-nums leading-none text-foreground">
-            {departure.displayTime}
-          </div>
-
-          <div className="min-w-0">
-            <div className="truncate text-base font-semibold text-foreground">
-              Til {departure.destination}
-            </div>
-            <div className="truncate text-sm text-muted-foreground">
-              Kai: {departure.quay || "Ukjent"}
-            </div>
-          </div>
-
-          <div className="flex flex-col items-end gap-1.5">
-            <span className="rounded-full border border-border bg-secondary px-3 py-1.5 text-sm font-bold text-foreground tabular-nums">
-              {formatMinutesLabel(departure.minutesUntil)}
-            </span>
-            <span
-              className={cn(
-                "text-xs font-semibold uppercase tracking-wide",
-                departure.realtime ? "text-primary" : "text-muted-foreground",
-              )}
-            >
-              {departure.realtime ? "Live" : "Planlagt"}
-            </span>
-          </div>
+          <span className="u-time tabular">{formatHm(d.departureTimeIso)}</span>
+          <span className="u-to">Til {d.destination || toLabel}</span>
+          <span className="u-in tabular">
+            om {formatRelative(d.departureTimeIso, now)}
+          </span>
         </li>
       ))}
-    </ul>
+    </ol>
   );
 }
