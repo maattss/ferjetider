@@ -286,36 +286,13 @@ export default function App(): JSX.Element {
           </div>
 
           <section className="legend">
-            <div className="legend-row">
-              <div>
-                <div className="legend-title">Om ferjetider</div>
-                <p>
-                  Sanntids avgangstider for de to ferjesambandene som knytter E39
-                  mellom Stavanger og Bergen. Reisetid Mortavika–Arsvågen er
-                  omtrent 25 minutter, Sandvikvåg–Halhjem omtrent 40.
-                </p>
-              </div>
-              <div>
-                <div className="legend-title">Status</div>
-                <ul className="status-key">
-                  <li>
-                    <span className="dot ok" />
-                    Normal drift
-                  </li>
-                  <li>
-                    <span className="dot warn" />
-                    Lagrede avganger
-                  </li>
-                  <li>
-                    <span className="dot err" />
-                    Feil ved henting
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <div className="legend-title">Oppdatert</div>
-                <p className="tabular">{formatClock(now)} · hvert minutt</p>
-              </div>
+            <div>
+              <div className="legend-title">Om ferjetider</div>
+              <p>
+                Sanntids avgangstider for de to ferjesambandene som knytter E39
+                mellom Stavanger og Bergen. Reisetid Mortavika–Arsvågen er
+                omtrent 25 minutter, Sandvikvåg–Halhjem omtrent 40.
+              </p>
             </div>
           </section>
 
