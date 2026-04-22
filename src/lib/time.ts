@@ -39,3 +39,17 @@ export function formatMinutesLabel(minutesUntil: number): string {
 
   return `${minutesUntil} min`;
 }
+
+export function formatRelativeLabel(minutesUntil: number): string {
+  if (minutesUntil <= 0) {
+    return "nå";
+  }
+
+  if (minutesUntil >= 60) {
+    const hours = Math.floor(minutesUntil / 60);
+    const mins = minutesUntil % 60;
+    return `${hours}t ${String(mins).padStart(2, "0")}m`;
+  }
+
+  return `${minutesUntil} min`;
+}

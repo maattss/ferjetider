@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
 import { useDepartures } from "@/hooks/useDepartures";
 import { DepartureList } from "@/components/DepartureList";
+import { minutesUntilDeparture } from "@/lib/time";
 import type { DirectionKey, RouteKey } from "@/config/routes";
 
 interface DeparturePanelProps {
@@ -10,19 +10,7 @@ interface DeparturePanelProps {
   toLabel: string;
   sambandName: string;
   fromRegion: string;
-}
-
-function pad(n: number): string {
-  return String(n).padStart(2, "0");
-}
-
-function useNow(): Date {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
-  return now;
+  now: Date;
 }
 
 function StatusIndicator({
@@ -63,6 +51,7 @@ export function DeparturePanel({
   toLabel,
   sambandName,
   fromRegion,
+  now,
 }: DeparturePanelProps): JSX.Element {
   const { data, error, isFallback, isLoading } = useDepartures({
     routeKey,
@@ -70,26 +59,21 @@ export function DeparturePanel({
     limit: 7,
   });
 
-  const now = useNow();
   const departures = data?.departures ?? [];
   const nextDeparture = departures[0];
   const laterDepartures = nextDeparture ? departures.slice(1, 7) : [];
 
-  const nextTime = nextDeparture ? new Date(nextDeparture.departureTimeIso) : null;
-  const diffMs = nextTime ? nextTime.getTime() - now.getTime() : 0;
-  const minsTo = Math.max(0, Math.floor(diffMs / 60000));
+  const nextDate = nextDeparture ? new Date(nextDeparture.departureTimeIso) : null;
+  const hasValidNext = nextDate !== null && !Number.isNaN(nextDate.getTime());
+  const diffMs = hasValidNext ? nextDate.getTime() - now.getTime() : 0;
+  const minsTo = hasValidNext
+    ? minutesUntilDeparture(nextDeparture!.departureTimeIso, now)
+    : 0;
   const secsTo = Math.max(0, Math.floor((diffMs % 60000) / 1000));
-  const isImminent = nextTime !== null && diffMs < 90_000;
-  const isSoon = nextTime !== null && diffMs < 5 * 60_000;
+  const isImminent = hasValidNext && diffMs < 90_000;
+  const isSoon = hasValidNext && diffMs < 5 * 60_000;
 
-  const progressPct = Math.max(
-    0,
-    Math.min(100, 100 - (minsTo / 20) * 100),
-  );
-
-  const clockLabel = nextTime
-    ? `${pad(nextTime.getHours())}:${pad(nextTime.getMinutes())}`
-    : "--:--";
+  const progressPct = Math.max(0, Math.min(100, 100 - (minsTo / 20) * 100));
 
   return (
     <section className="samband-card">
@@ -101,10 +85,7 @@ export function DeparturePanel({
             {fromLabel} → {toLabel}
           </span>
         </div>
-        <StatusIndicator
-          isFallback={isFallback}
-          hasError={error !== null}
-        />
+        <StatusIndicator isFallback={isFallback} hasError={error !== null} />
       </header>
 
       {nextDeparture ? (
@@ -114,13 +95,15 @@ export function DeparturePanel({
           }`}
         >
           <div className="next-label">Neste avgang</div>
-          <div className="next-clock tabular">{clockLabel}</div>
+          <div className="next-clock tabular">{nextDeparture.displayTime}</div>
           <div className="next-countdown-row">
             <div className="countdown">
               <span className="cd-num tabular">{minsTo}</span>
               <span className="cd-unit">min</span>
               {minsTo < 10 && (
-                <span className="cd-secs tabular">:{pad(secsTo)}</span>
+                <span className="cd-secs tabular">
+                  :{String(secsTo).padStart(2, "0")}
+                </span>
               )}
             </div>
             <div className="countdown-meta">
@@ -131,10 +114,7 @@ export function DeparturePanel({
             </div>
           </div>
           <div className="progress-track" aria-hidden="true">
-            <div
-              className="progress-fill"
-              style={{ width: `${progressPct}%` }}
-            />
+            <div className="progress-fill" style={{ width: `${progressPct}%` }} />
           </div>
         </div>
       ) : (

@@ -8,26 +8,11 @@ import {
 } from "@/config/routes";
 import { DeparturePanel } from "@/components/DeparturePanel";
 import { SeaScene } from "@/components/SeaScene";
+import { useNow } from "@/hooks/useNow";
+import { formatOsloTime } from "@/lib/time";
 
 const DEFAULT_TRAVEL_DIRECTION = TRAVEL_DIRECTIONS[0].key;
 const DEFAULT_SITE_ORIGIN = "https://ferjetider.fyi";
-
-function pad(n: number): string {
-  return String(n).padStart(2, "0");
-}
-
-function formatClock(d: Date): string {
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function useNow(): Date {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
-  return now;
-}
 
 function setMetaContent(selector: string, value: string): void {
   const meta = document.querySelector(selector);
@@ -229,7 +214,7 @@ export default function App(): JSX.Element {
                   <span className="sambandlist">
                     Mortavika ↔ Arsvågen · Sandvikvåg ↔ Halhjem
                   </span>
-                  <span className="clock tabular">{formatClock(now)}</span>
+                  <span className="clock tabular">{formatOsloTime(now)}</span>
                 </div>
               </div>
               <h1 className="hero-title">
@@ -281,6 +266,7 @@ export default function App(): JSX.Element {
                 toLabel={route.toLabel}
                 sambandName={route.sambandName}
                 fromRegion={route.fromRegion}
+                now={now}
               />
             ))}
           </div>
@@ -298,7 +284,7 @@ export default function App(): JSX.Element {
 
           <footer className="foot">
             <div>Ferjetider · E39 Boknafjorden &amp; Langenuen</div>
-            <div className="tabular">oppdatert {formatClock(now)}</div>
+            <div className="tabular">oppdatert {formatOsloTime(now)}</div>
           </footer>
         </main>
       </div>
