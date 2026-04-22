@@ -7,7 +7,9 @@ import {
   isTravelDirectionKey,
 } from "@/config/routes";
 import { DeparturePanel } from "@/components/DeparturePanel";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SeaScene } from "@/components/SeaScene";
+import { useNow } from "@/hooks/useNow";
+import { formatOsloTime } from "@/lib/time";
 
 const DEFAULT_TRAVEL_DIRECTION = TRAVEL_DIRECTIONS[0].key;
 const DEFAULT_SITE_ORIGIN = "https://ferjetider.fyi";
@@ -39,6 +41,8 @@ export default function App(): JSX.Element {
   const [travelDirectionKey, setTravelDirectionKey] =
     useState<TravelDirectionKey>(DEFAULT_TRAVEL_DIRECTION);
   const [siteOrigin, setSiteOrigin] = useState(DEFAULT_SITE_ORIGIN);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const now = useNow();
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -53,6 +57,12 @@ export default function App(): JSX.Element {
     if (tdParam && isTravelDirectionKey(tdParam)) {
       setTravelDirectionKey(tdParam);
     }
+
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReducedMotion(mq.matches);
+    const listener = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    mq.addEventListener("change", listener);
+    return () => mq.removeEventListener("change", listener);
   }, []);
 
   useEffect(() => {
@@ -179,60 +189,105 @@ export default function App(): JSX.Element {
 
   return (
     <>
-      <main className="h-screen overflow-hidden bg-background p-3 text-foreground flex flex-col gap-3">
-        <header className="flex items-center justify-between rounded-2xl border border-border/50 bg-card px-5 py-3 shrink-0">
-          <div>
-            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary/60">
-              Ferjetider
-            </p>
-            <h1 className="text-xl font-bold tracking-tight">Bergen–Stavanger</h1>
+      <div className="page">
+        <header className="hero">
+          <SeaScene reducedMotion={reducedMotion} />
+          <div className="hero-overlay">
+            <div className="hero-inner">
+              <div className="topbar">
+                <div className="brand">
+                  <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true">
+                    <path d="M 2 14 L 4 17 L 18 17 L 20 14 Z" fill="currentColor" />
+                    <rect x="5" y="9" width="12" height="5" fill="currentColor" />
+                    <rect
+                      x="9"
+                      y="5"
+                      width="4"
+                      height="4"
+                      fill="currentColor"
+                      opacity="0.6"
+                    />
+                  </svg>
+                  <span>Ferjetider</span>
+                </div>
+                <div className="topbar-meta">
+                  <span className="sambandlist">
+                    Mortavika ↔ Arsvågen · Sandvikvåg ↔ Halhjem
+                  </span>
+                  <span className="clock tabular">{formatOsloTime(now)}</span>
+                </div>
+              </div>
+              <h1 className="hero-title">
+                Ferjeavganger på <em>E39</em>
+                <br />
+                mellom Stavanger &amp; Bergen
+              </h1>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Arsvågen ↔ Mortavika · Halhjem ↔ Sandvikvåg
-          </p>
         </header>
 
-        <Tabs
-          value={travelDirectionKey}
-          onValueChange={(nextValue) => {
-            if (isTravelDirectionKey(nextValue)) {
-              setTravelDirectionKey(nextValue);
-            }
-          }}
-          className="flex-1 min-h-0 flex flex-col gap-3"
-        >
-          <TabsList className="grid h-auto w-full grid-cols-2 rounded-2xl bg-secondary p-1.5 shrink-0">
-            {TRAVEL_DIRECTIONS.map((td) => (
-              <TabsTrigger
-                key={td.key}
-                value={td.key}
-                className="h-auto rounded-xl py-3 text-base font-semibold leading-tight data-[state=active]:bg-card data-[state=active]:shadow-none"
-              >
-                {td.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+        <div className="direction-bar">
+          <div className="direction-inner">
+            <div className="dir-label">Jeg skal</div>
+            <div className="dir-switch" role="tablist" aria-label="Reiseretning">
+              {TRAVEL_DIRECTIONS.map((td) => {
+                const isActive = travelDirectionKey === td.key;
+                const arrow = td.key === "mot_bergen" ? "↑" : "↓";
+                return (
+                  <button
+                    key={td.key}
+                    role="tab"
+                    aria-selected={isActive}
+                    className={isActive ? "active" : ""}
+                    onClick={() => setTravelDirectionKey(td.key)}
+                  >
+                    <span className="dir-arrow">{arrow}</span>
+                    {td.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="dir-meta">
+              <span className="status-line">
+                <span className="dot ok"></span>Sanntidsdata fra Entur
+              </span>
+            </div>
+          </div>
+        </div>
 
-          {TRAVEL_DIRECTIONS.map((td) => (
-            <TabsContent
-              key={td.key}
-              value={td.key}
-              className="flex-1 min-h-0 mt-0 grid grid-cols-2 gap-3 data-[state=inactive]:hidden"
-              forceMount
-            >
-              {td.routes.map((route) => (
-                <DeparturePanel
-                  key={`${route.routeKey}-${route.directionKey}`}
-                  routeKey={route.routeKey}
-                  directionKey={route.directionKey}
-                  fromLabel={route.fromLabel}
-                  toLabel={route.toLabel}
-                />
-              ))}
-            </TabsContent>
-          ))}
-        </Tabs>
-      </main>
+        <main className="main">
+          <div className="cards">
+            {travelDirection.routes.map((route) => (
+              <DeparturePanel
+                key={`${route.routeKey}-${route.directionKey}`}
+                routeKey={route.routeKey}
+                directionKey={route.directionKey}
+                fromLabel={route.fromLabel}
+                toLabel={route.toLabel}
+                sambandName={route.sambandName}
+                fromRegion={route.fromRegion}
+                now={now}
+              />
+            ))}
+          </div>
+
+          <section className="legend">
+            <div>
+              <div className="legend-title">Om ferjetider</div>
+              <p>
+                Sanntids avgangstider for de to ferjesambandene som knytter E39
+                mellom Stavanger og Bergen. Reisetid Mortavika–Arsvågen er
+                omtrent 25 minutter, Sandvikvåg–Halhjem omtrent 40.
+              </p>
+            </div>
+          </section>
+
+          <footer className="foot">
+            <div>Ferjetider · E39 Boknafjorden &amp; Langenuen</div>
+            <div className="tabular">oppdatert {formatOsloTime(now)}</div>
+          </footer>
+        </main>
+      </div>
 
       <Analytics />
     </>
