@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import {
   TRAVEL_DIRECTIONS,
@@ -42,7 +42,32 @@ export default function App(): JSX.Element {
     useState<TravelDirectionKey>(DEFAULT_TRAVEL_DIRECTION);
   const [siteOrigin, setSiteOrigin] = useState(DEFAULT_SITE_ORIGIN);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [updatedAtByPanel, setUpdatedAtByPanel] = useState<
+    Record<string, string>
+  >({});
   const now = useNow();
+
+  const handlePanelUpdated = useCallback(
+    (panelKey: string, updatedAt: string | null) => {
+      setUpdatedAtByPanel((previous) => {
+        if (updatedAt === null) {
+          if (!(panelKey in previous)) {
+            return previous;
+          }
+          const next = { ...previous };
+          delete next[panelKey];
+          return next;
+        }
+
+        if (previous[panelKey] === updatedAt) {
+          return previous;
+        }
+
+        return { ...previous, [panelKey]: updatedAt };
+      });
+    },
+    [],
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -102,6 +127,21 @@ export default function App(): JSX.Element {
   );
 
   const travelDirection = TRAVEL_DIRECTION_MAP[travelDirectionKey];
+
+  /**
+   * The page is only as fresh as its stalest card, so report the oldest of the
+   * two. Reads only the currently visible routes, so stamps left behind by the
+   * other direction cannot make this look newer than it is.
+   */
+  const lastUpdated = useMemo(() => {
+    const stamps = travelDirection.routes
+      .map((route) => updatedAtByPanel[`${route.routeKey}-${route.directionKey}`])
+      .filter((value): value is string => Boolean(value))
+      .map((value) => new Date(value).getTime())
+      .filter((time) => !Number.isNaN(time));
+
+    return stamps.length > 0 ? new Date(Math.min(...stamps)) : null;
+  }, [travelDirection, updatedAtByPanel]);
 
   const seoTitle = useMemo(
     () => `Ferjetider ${travelDirection.label} | Bergen-Stavanger`,
@@ -223,9 +263,6 @@ export default function App(): JSX.Element {
                   <span>Ferjetider</span>
                 </div>
                 <div className="topbar-meta">
-                  <span className="sambandlist">
-                    Mortavika ↔ Arsvågen · Sandvikvåg ↔ Halhjem
-                  </span>
                   <span className="clock tabular">{formatOsloTime(now)}</span>
                 </div>
               </div>
@@ -281,6 +318,7 @@ export default function App(): JSX.Element {
                 sambandName={route.sambandName}
                 fromRegion={route.fromRegion}
                 now={now}
+                onUpdated={handlePanelUpdated}
               />
             ))}
           </div>
@@ -289,16 +327,22 @@ export default function App(): JSX.Element {
             <div>
               <div className="legend-title">Om ferjetider</div>
               <p>
-                Sanntids avgangstider for de to ferjesambandene som knytter E39
-                mellom Stavanger og Bergen. Reisetid Mortavika–Arsvågen er
-                omtrent 25 minutter, Sandvikvåg–Halhjem omtrent 40.
+                Avgangstider for de to ferjesambandene som knytter E39 mellom
+                Stavanger og Bergen. Reisetid Mortavika–Arsvågen er omtrent 25
+                minutter, Sandvikvåg–Halhjem omtrent 40. Avganger merket{" "}
+                <em>sanntid</em> spores av Entur akkurat nå; <em>rutetid</em>{" "}
+                er den oppsatte ruta, som ennå ikke spores.
               </p>
             </div>
           </section>
 
           <footer className="foot">
             <div>Ferjetider · E39 Boknafjorden &amp; Langenuen</div>
-            <div className="tabular">oppdatert {formatOsloTime(now)}</div>
+            <div className="tabular">
+              {lastUpdated
+                ? `oppdatert ${formatOsloTime(lastUpdated)}`
+                : "henter data…"}
+            </div>
           </footer>
         </main>
       </div>
