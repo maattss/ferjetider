@@ -47,7 +47,14 @@ export function DepartureList({
           >
             <span className="u-time tabular">{d.displayTime}</span>
             <span className="u-to">Til {d.destination || toLabel}</span>
-            <span className="u-in tabular">om {formatRelativeLabel(mins)}</span>
+            <span className="u-in tabular">
+              {!d.realtime && (
+                <span className="u-planned" title="Rutetid, ikke sanntidssporet">
+                  rutetid
+                </span>
+              )}
+              om {formatRelativeLabel(mins)}
+            </span>
           </li>
         );
       })}

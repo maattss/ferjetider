@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useDepartures } from "@/hooks/useDepartures";
 import { DepartureList } from "@/components/DepartureList";
 import {
@@ -16,6 +17,7 @@ interface DeparturePanelProps {
   sambandName: string;
   fromRegion: string;
   now: Date;
+  onUpdated?: (panelKey: string, updatedAt: string | null) => void;
 }
 
 function StatusIndicator({
@@ -57,6 +59,7 @@ export function DeparturePanel({
   sambandName,
   fromRegion,
   now,
+  onUpdated,
 }: DeparturePanelProps): JSX.Element {
   const { data, error, isFallback, isLoading, isFetching, refetch } = useDepartures({
     routeKey,
@@ -81,6 +84,13 @@ export function DeparturePanel({
 
   const showError = error !== null && !nextDeparture;
 
+  const panelKey = `${routeKey}-${directionKey}`;
+  const updatedAt = data?.updatedAt ?? null;
+
+  useEffect(() => {
+    onUpdated?.(panelKey, updatedAt);
+  }, [onUpdated, panelKey, updatedAt]);
+
   return (
     <section className="samband-card">
       <header className="samband-head">
@@ -103,7 +113,14 @@ export function DeparturePanel({
             isImminent ? "imminent" : isSoon ? "soon" : ""
           }`}
         >
-          <div className="next-label">Neste avgang</div>
+          <div className="next-label">
+            Neste avgang
+            <span
+              className={`rt-flag ${nextDeparture.realtime ? "live" : ""}`}
+            >
+              {nextDeparture.realtime ? "sanntid" : "rutetid"}
+            </span>
+          </div>
           <div className="next-clock tabular">{nextDeparture.displayTime}</div>
           <div className="next-countdown-row">
             <div className="countdown">
