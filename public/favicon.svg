@@ -1,11 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Ferjetider ikon">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0f5f8f" />
-      <stop offset="1" stop-color="#2c9bc8" />
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#12203a" />
+      <stop offset="1" stop-color="#050c18" />
     </linearGradient>
   </defs>
   <rect width="64" height="64" rx="12" fill="url(#g)" />
-  <path d="M14 38h36l-4 8H18l-4-8Zm8-14h20v10H22V24Z" fill="#fff" />
-  <path d="M12 50c3 0 3 2 6 2s3-2 6-2 3 2 6 2 3-2 6-2 3 2 6 2 3-2 6-2" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" />
+  <g transform="translate(9 11)">
+    <rect x="20" y="0" width="4" height="6" fill="#ffd15c" />
+    <rect x="15" y="6" width="15" height="8" fill="#5ba8e6" />
+    <rect x="6" y="14" width="34" height="9" fill="#eaeef5" />
+    <path d="M0 23 L4 30 L42 30 L46 23 Z" fill="#eaeef5" />
+  </g>
+  <path d="M9 49c4.2 0 4.2 3.2 8.4 3.2s4.2-3.2 8.4-3.2 4.2 3.2 8.4 3.2 4.2-3.2 8.4-3.2 4.2 3.2 8.4 3.2" stroke="#5ba8e6" stroke-width="2.6" fill="none" stroke-linecap="round" opacity="0.6" />
 </svg>

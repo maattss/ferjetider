@@ -8,6 +8,14 @@ import {
 import type { DeparturesErrorPayload, DeparturesResponse } from "@/types/departures";
 
 const REFRESH_INTERVAL_MS = 60_000;
+const GENERIC_ERROR = "Kunne ikke hente ferjetider akkurat nå.";
+
+/**
+ * Marks a message we wrote ourselves and are happy to show the user. Anything
+ * else (a JSON parse failure, a network TypeError) carries a developer-facing
+ * string that must not reach the page.
+ */
+class ApiError extends Error {}
 
 interface UseDeparturesParams {
   routeKey: RouteKey;
@@ -74,10 +82,16 @@ export function useDepartures({
           } catch {
             // Keep default fallback message.
           }
-          throw new Error(message);
+          throw new ApiError(message);
         }
 
-        const payload = (await response.json()) as DeparturesResponse;
+        let payload: DeparturesResponse;
+        try {
+          payload = (await response.json()) as DeparturesResponse;
+        } catch {
+          throw new ApiError("Fikk et uventet svar fra serveren.");
+        }
+
         setData(payload);
         setError(null);
         setIsFallback(false);
@@ -96,9 +110,7 @@ export function useDepartures({
         }
 
         setError(
-          fetchError instanceof Error
-            ? fetchError.message
-            : "Kunne ikke hente ferjetider akkurat nå.",
+          fetchError instanceof ApiError ? fetchError.message : GENERIC_ERROR,
         );
       } finally {
         if (!abortController.signal.aborted) {

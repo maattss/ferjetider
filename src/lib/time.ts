@@ -26,20 +26,6 @@ export function minutesUntilDeparture(
   return Math.max(0, Math.round((departureDate.getTime() - now.getTime()) / 60000));
 }
 
-export function formatMinutesLabel(minutesUntil: number): string {
-  if (minutesUntil <= 0) {
-    return "Nå";
-  }
-
-  if (minutesUntil >= 60) {
-    const hours = Math.floor(minutesUntil / 60);
-    const mins = minutesUntil % 60;
-    return mins === 0 ? `${hours}t` : `${hours}t ${mins}m`;
-  }
-
-  return `${minutesUntil} min`;
-}
-
 export function formatRelativeLabel(minutesUntil: number): string {
   if (minutesUntil <= 0) {
     return "nå";

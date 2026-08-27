@@ -71,21 +71,33 @@ export default function App(): JSX.Element {
     }
 
     const params = new URLSearchParams(window.location.search);
+    const isDefault = travelDirectionKey === DEFAULT_TRAVEL_DIRECTION;
 
-    if (params.get("travelDirection") === travelDirectionKey) {
+    // Keep the bare root URL clean for the default direction, so "/" stays the
+    // canonical entry point instead of self-redirecting to a parameterised twin.
+    if (isDefault) {
+      params.delete("travelDirection");
+    } else {
+      params.set("travelDirection", travelDirectionKey);
+    }
+
+    const query = params.toString();
+    const nextUrl = query
+      ? `${window.location.pathname}?${query}`
+      : window.location.pathname;
+
+    if (nextUrl === `${window.location.pathname}${window.location.search}`) {
       return;
     }
 
-    params.set("travelDirection", travelDirectionKey);
-    window.history.replaceState(
-      null,
-      "",
-      `${window.location.pathname}?${params.toString()}`,
-    );
+    window.history.replaceState(null, "", nextUrl);
   }, [travelDirectionKey]);
 
   const currentUrl = useMemo(
-    () => `${siteOrigin}/?travelDirection=${travelDirectionKey}`,
+    () =>
+      travelDirectionKey === DEFAULT_TRAVEL_DIRECTION
+        ? `${siteOrigin}/`
+        : `${siteOrigin}/?travelDirection=${travelDirectionKey}`,
     [siteOrigin, travelDirectionKey],
   );
 
@@ -149,7 +161,7 @@ export default function App(): JSX.Element {
                 name: "Hvor ofte oppdateres ferjetidene?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "Ferjetidene oppdateres automatisk hvert minutt, og du kan også oppdatere manuelt.",
+                  text: "Ferjetidene oppdateres automatisk hvert minutt, og på nytt så snart du åpner siden igjen.",
                 },
               },
               {
@@ -229,19 +241,21 @@ export default function App(): JSX.Element {
         <div className="direction-bar">
           <div className="direction-inner">
             <div className="dir-label">Jeg skal</div>
-            <div className="dir-switch" role="tablist" aria-label="Reiseretning">
+            <div className="dir-switch" role="group" aria-label="Reiseretning">
               {TRAVEL_DIRECTIONS.map((td) => {
                 const isActive = travelDirectionKey === td.key;
                 const arrow = td.key === "mot_bergen" ? "↑" : "↓";
                 return (
                   <button
                     key={td.key}
-                    role="tab"
-                    aria-selected={isActive}
+                    type="button"
+                    aria-pressed={isActive}
                     className={isActive ? "active" : ""}
                     onClick={() => setTravelDirectionKey(td.key)}
                   >
-                    <span className="dir-arrow">{arrow}</span>
+                    <span className="dir-arrow" aria-hidden="true">
+                      {arrow}
+                    </span>
                     {td.label}
                   </button>
                 );

@@ -10,7 +10,7 @@
   --surface-2: #1a2539;
   --ink: #eaeef5;
   --ink-2: #aeb9c9;
-  --ink-3: #6d7b8d;
+  --ink-3: #7f8da0;
   --sea: #030912;
   --sky: #1a2f4a;
   --accent: #5ba8e6;
@@ -21,6 +21,9 @@
   --err: #e07a66;
   --live: #5ba8e6;
   --hero-ink: #ffffff;
+  /* Horizontal gutter, widened by the notch/home-indicator insets when the
+     app runs standalone with viewport-fit=cover. */
+  --gutter: max(40px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
   --display-font: "Space Grotesk", system-ui, sans-serif;
   --ui-font: "Inter", system-ui, sans-serif;
 }
@@ -43,6 +46,11 @@ body {
   -webkit-font-smoothing: antialiased;
   font-feature-settings: "ss01";
   margin: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
 }
 
 .tabular {
@@ -91,7 +99,7 @@ body {
   max-width: 1280px;
   width: 100%;
   margin: 0 auto;
-  padding: 28px 40px 40px;
+  padding: calc(28px + env(safe-area-inset-top, 0px)) var(--gutter) 40px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -172,7 +180,7 @@ body {
 .direction-inner {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 14px 40px;
+  padding: 14px var(--gutter);
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
@@ -254,7 +262,7 @@ body {
 .main {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 40px 40px 80px;
+  padding: 40px var(--gutter) calc(80px + env(safe-area-inset-bottom, 0px));
 }
 .cards {
   display: grid;
@@ -437,6 +445,37 @@ body {
   background: var(--err);
 }
 
+.next-error {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 44ch;
+  margin: 0 auto 18px;
+  text-wrap: pretty;
+}
+.retry {
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 9px 20px;
+  cursor: pointer;
+  transition:
+    border-color 140ms,
+    color 140ms;
+}
+.retry:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+.retry:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 /* Upcoming list */
 .upcoming {
   border-top: 1px solid var(--line);
@@ -531,11 +570,6 @@ body {
   padding: 28px 0 0;
   border-top: 1px solid var(--line);
 }
-.legend-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 40px;
-}
 .legend-title {
   font-family: var(--display-font);
   font-weight: 600;
@@ -551,21 +585,6 @@ body {
   text-wrap: pretty;
   margin: 0;
 }
-.status-key {
-  list-style: none;
-  display: grid;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--ink-2);
-  padding: 0;
-  margin: 0;
-}
-.status-key li {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .foot {
   margin-top: 48px;
   padding-top: 20px;
@@ -585,23 +604,22 @@ body {
   .cards {
     grid-template-columns: 1fr;
   }
+  :root {
+    --gutter: max(20px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+  }
   .main {
-    padding: 28px 20px 60px;
+    padding: 28px var(--gutter) calc(60px + env(safe-area-inset-bottom, 0px));
   }
   .hero-inner {
-    padding: 20px 20px 28px;
+    padding: calc(20px + env(safe-area-inset-top, 0px)) var(--gutter) 28px;
   }
   .direction-inner {
     grid-template-columns: 1fr;
     gap: 12px;
-    padding: 14px 20px;
+    padding: 14px var(--gutter);
   }
   .dir-meta {
     justify-self: start;
-  }
-  .legend-row {
-    grid-template-columns: 1fr;
-    gap: 24px;
   }
   .topbar-meta .sambandlist {
     display: none;
