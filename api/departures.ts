@@ -275,11 +275,19 @@ export default async function handler(
     res.setHeader("Content-Security-Policy", "frame-ancestors 'none'");
     return res.status(200).json(payload);
   } catch (error) {
-    const reason = error instanceof Error ? error.message : "Ukjent feil";
+    // The reason is either arbitrary text from Entur's GraphQL response or a
+    // raw fetch failure. It belongs in the logs, not in a message the page
+    // renders to someone standing on the quay.
+    console.error("Henting fra Entur feilet", {
+      routeKey: parsedRequest.routeKey,
+      directionKey: parsedRequest.directionKey,
+      reason: error instanceof Error ? error.message : String(error),
+    });
+
     return sendError(
       res,
       502,
-      `Kunne ikke hente live-data fra Entur akkurat nå (${reason}).`,
+      "Kunne ikke hente live-data fra Entur akkurat nå. Prøv igjen om litt.",
     );
   }
 }

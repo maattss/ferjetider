@@ -196,6 +196,7 @@ describe("api departures", () => {
   });
 
   it("returns 502 when Entur fetch fails", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network down")));
 
     const request = {
@@ -212,5 +213,42 @@ describe("api departures", () => {
 
     expect(response.statusCode).toBe(502);
     expect(response.body?.error).toContain("Kunne ikke hente live-data");
+    expect(response.body?.error).not.toContain("network down");
+  });
+
+  it("keeps upstream GraphQL detail out of the 502 body and in the logs", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    const upstreamDetail =
+      "Validation error of type FieldUndefined: Field 'quay' at /stopPlace";
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ errors: [{ message: upstreamDetail }] }),
+      }),
+    );
+
+    const request = {
+      method: "GET",
+      query: {
+        route: "arsvagen_mortavika",
+        direction: "arsvagen_to_mortavika",
+      },
+    } as unknown as VercelRequest;
+
+    const response = createMockResponse<{ error: string }>();
+
+    await handler(request, response.res);
+
+    expect(response.statusCode).toBe(502);
+    expect(response.body?.error).toBe(
+      "Kunne ikke hente live-data fra Entur akkurat nå. Prøv igjen om litt.",
+    );
+    expect(response.body?.error).not.toContain("Validation error");
+    expect(logged).toHaveBeenCalledWith(
+      "Henting fra Entur feilet",
+      expect.objectContaining({ reason: expect.stringContaining(upstreamDetail) }),
+    );
   });
 });
