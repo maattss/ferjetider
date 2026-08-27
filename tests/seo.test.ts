@@ -21,13 +21,16 @@ describe("seo utilities", () => {
   it("builds sitemap with all indexable route URLs", () => {
     const xml = buildSitemapXml("https://ferjetider.no");
 
-    expect(xml).toContain("https://ferjetider.no/");
-    expect(xml).toContain(
-      "https://ferjetider.no/?travelDirection=mot_bergen",
-    );
+    expect(xml).toContain("<loc>https://ferjetider.no/</loc>");
     expect(xml).toContain(
       "https://ferjetider.no/?travelDirection=mot_stavanger",
     );
+  });
+
+  it("omits the default direction, which the root URL already canonicalises", () => {
+    const xml = buildSitemapXml("https://ferjetider.no");
+
+    expect(xml).not.toContain("travelDirection=mot_bergen");
   });
 
   it("builds robots with sitemap reference", () => {

@@ -14,6 +14,9 @@ const MIDNIGHT_PALETTE = {
   ferryAccent: "#ffd15c",
 };
 
+/** ~20fps — plenty for slow wave motion, a third of the renders of full rAF. */
+const FRAME_INTERVAL_MS = 50;
+
 interface SeaSceneProps {
   reducedMotion: boolean;
 }
@@ -27,8 +30,14 @@ export function SeaScene({ reducedMotion }: SeaSceneProps): JSX.Element {
     }
     let raf = 0;
     const start = performance.now();
+    let lastFrame = 0;
     const loop = (now: number) => {
-      setT((now - start) / 1000);
+      // The waves and the ferry both move slowly; re-rendering the whole SVG at
+      // display refresh rate burns battery for no visible gain.
+      if (now - lastFrame >= FRAME_INTERVAL_MS) {
+        lastFrame = now;
+        setT((now - start) / 1000);
+      }
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);

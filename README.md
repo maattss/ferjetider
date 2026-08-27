@@ -16,6 +16,8 @@ Bytt samband, velg retning, og få neste avgang — alt på én side.
 - 🔝 Løfter frem neste avgang tydelig
 - ⏱️ Oppdaterer automatisk hvert 60. sekund
 - 📦 Faller tilbake til sist lagrede data hvis API-et er nede
+- 🧹 Skjuler avganger som allerede har gått, også i lagrede data
+- 📱 Kan installeres på hjemskjerm (manifest + app-ikoner)
 - 📊 Vercel Analytics for page views
 
 ## Stack
@@ -71,11 +73,37 @@ Satt opp for å rangere godt over tid:
 - Open Graph + Twitter-kort for bedre deling og CTR
 - Schema.org (`WebSite` + `FAQPage`)
 - Dynamisk `robots.txt` og `sitemap.xml`
+- Open Graph-bilde som PNG (SVG rendres ikke av Facebook/LinkedIn/Slack/X)
+
+Standardretningen (`mot_bergen`) ligger på `/` uten query-parameter, slik at
+rot-URL-en er sin egen canonical i stedet for å peke videre til en duplikat.
 
 Endepunkter:
 
 - `https://ferjetider.fyi/robots.txt`
 - `https://ferjetider.fyi/sitemap.xml`
+
+## Grafikk
+
+`public/*.svg` er kildene. PNG-ene som deles og installeres genereres fra dem:
+
+```bash
+CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+
+# Delingsbilde (Open Graph)
+"$CHROME" --headless --screenshot=public/og-image.png \
+  --window-size=1200,630 "file://$PWD/public/og-image.svg"
+
+# App-ikoner (favicon.svg uten avrundede hjørner)
+sed 's|rx="12" fill="url(#g)"|fill="url(#g)"|' public/favicon.svg > /tmp/icon.svg
+for size in 180 192 512; do
+  "$CHROME" --headless --screenshot="/tmp/icon-$size.png" \
+    --window-size=$size,$size "file:///tmp/icon.svg"
+done
+cp /tmp/icon-180.png public/apple-touch-icon.png
+cp /tmp/icon-192.png public/icon-192.png
+cp /tmp/icon-512.png public/icon-512.png
+```
 
 ## API-kontrakt
 

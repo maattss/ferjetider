@@ -19,6 +19,7 @@ import type {
 const ENTUR_ENDPOINT = "https://api.entur.io/journey-planner/v3/graphql";
 const DEFAULT_LIMIT = 6;
 const MAX_LIMIT = 12;
+const ENTUR_TIMEOUT_MS = 5_000;
 
 const ESTIMATED_CALLS_QUERY = `
   query EstimatedCalls($stopPlaceId: String!, $numberOfDepartures: Int!) {
@@ -190,20 +191,31 @@ async function fetchEnturCalls(
   const clientName = process.env.ENTUR_CLIENT_NAME || "ferjetider-app";
   const departuresForFetch = Math.max(limit * 3, 12);
 
-  const response = await fetch(ENTUR_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "ET-Client-Name": clientName,
-    },
-    body: JSON.stringify({
-      query: ESTIMATED_CALLS_QUERY,
-      variables: {
-        stopPlaceId: directionConfig.fromStopPlaceId,
-        numberOfDepartures: departuresForFetch,
+  let response: Response;
+  try {
+    response = await fetch(ENTUR_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "ET-Client-Name": clientName,
       },
-    }),
-  });
+      body: JSON.stringify({
+        query: ESTIMATED_CALLS_QUERY,
+        variables: {
+          stopPlaceId: directionConfig.fromStopPlaceId,
+          numberOfDepartures: departuresForFetch,
+        },
+      }),
+      // Without this a hanging upstream holds the function open until the
+      // platform kills it, turning a slow Entur into a slow page for everyone.
+      signal: AbortSignal.timeout(ENTUR_TIMEOUT_MS),
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "TimeoutError") {
+      throw new Error(`Entur svarte ikke innen ${ENTUR_TIMEOUT_MS} ms`);
+    }
+    throw error;
+  }
 
   if (!response.ok) {
     throw new Error(`Entur svarte med status ${response.status}`);

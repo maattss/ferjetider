@@ -1,10 +1,8 @@
 import type { VercelRequest } from "@vercel/node";
 
-const INDEXABLE_PATHS = [
-  "/",
-  "/?travelDirection=mot_bergen",
-  "/?travelDirection=mot_stavanger",
-];
+// "/" already serves (and canonicalises) the default direction, so listing
+// "?travelDirection=mot_bergen" too would just be a duplicate of the root.
+const INDEXABLE_PATHS = ["/", "/?travelDirection=mot_stavanger"];
 
 function readHeader(
   headerValue: string | string[] | undefined,

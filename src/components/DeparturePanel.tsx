@@ -1,6 +1,11 @@
 import { useDepartures } from "@/hooks/useDepartures";
 import { DepartureList } from "@/components/DepartureList";
-import { minutesUntilDeparture } from "@/lib/time";
+import {
+  approachPercent,
+  countdownParts,
+  estimateHeadwayMs,
+  upcomingDepartures,
+} from "@/lib/departures";
 import type { DirectionKey, RouteKey } from "@/config/routes";
 
 interface DeparturePanelProps {
@@ -53,27 +58,28 @@ export function DeparturePanel({
   fromRegion,
   now,
 }: DeparturePanelProps): JSX.Element {
-  const { data, error, isFallback, isLoading } = useDepartures({
+  const { data, error, isFallback, isLoading, isFetching, refetch } = useDepartures({
     routeKey,
     directionKey,
     limit: 7,
   });
 
-  const departures = data?.departures ?? [];
+  const departures = upcomingDepartures(data?.departures ?? [], now);
   const nextDeparture = departures[0];
-  const laterDepartures = nextDeparture ? departures.slice(1, 7) : [];
+  const laterDepartures = departures.slice(1, 7);
 
-  const nextDate = nextDeparture ? new Date(nextDeparture.departureTimeIso) : null;
-  const hasValidNext = nextDate !== null && !Number.isNaN(nextDate.getTime());
-  const diffMs = hasValidNext ? nextDate.getTime() - now.getTime() : 0;
-  const minsTo = hasValidNext
-    ? minutesUntilDeparture(nextDeparture!.departureTimeIso, now)
+  const diffMs = nextDeparture
+    ? new Date(nextDeparture.departureTimeIso).getTime() - now.getTime()
     : 0;
-  const secsTo = Math.max(0, Math.floor((diffMs % 60000) / 1000));
-  const isImminent = hasValidNext && diffMs < 90_000;
-  const isSoon = hasValidNext && diffMs < 5 * 60_000;
+  const { minutes: minsTo, seconds: secsTo } = countdownParts(diffMs);
+  const isImminent = Boolean(nextDeparture) && diffMs < 90_000;
+  const isSoon = Boolean(nextDeparture) && diffMs < 5 * 60_000;
 
-  const progressPct = Math.max(0, Math.min(100, 100 - (minsTo / 20) * 100));
+  const progressPct = nextDeparture
+    ? approachPercent(diffMs, estimateHeadwayMs(departures))
+    : 0;
+
+  const showError = error !== null && !nextDeparture;
 
   return (
     <section className="samband-card">
@@ -120,8 +126,25 @@ export function DeparturePanel({
       ) : (
         <div className="next-block empty">
           <div className="next-label">
-            {isLoading ? "Henter avganger…" : "Ingen planlagte avganger"}
+            {isLoading
+              ? "Henter avganger…"
+              : showError
+                ? "Ingen data"
+                : "Ingen planlagte avganger"}
           </div>
+          {showError && (
+            <>
+              <p className="next-error">{error}</p>
+              <button
+                type="button"
+                className="retry"
+                onClick={() => void refetch()}
+                disabled={isFetching}
+              >
+                {isFetching ? "Prøver…" : "Prøv igjen"}
+              </button>
+            </>
+          )}
         </div>
       )}
 

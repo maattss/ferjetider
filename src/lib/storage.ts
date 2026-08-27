@@ -1,7 +1,7 @@
 import type { DeparturesResponse } from "@/types/departures";
 
 const CACHE_VERSION = 1;
-const MAX_CACHE_AGE_MS = 1000 * 60 * 60 * 12;
+const MAX_CACHE_AGE_MS = 1000 * 60 * 60 * 6;
 
 interface CacheEnvelope {
   version: number;

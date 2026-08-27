@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  formatMinutesLabel,
   formatOsloTime,
+  formatRelativeLabel,
   minutesUntilDeparture,
 } from "../src/lib/time";
 
@@ -17,11 +17,12 @@ describe("time utils", () => {
     expect(result).toBe(12);
   });
 
-  it("formats minute labels", () => {
-    expect(formatMinutesLabel(0)).toBe("Nå");
-    expect(formatMinutesLabel(7)).toBe("7 min");
-    expect(formatMinutesLabel(60)).toBe("1t");
-    expect(formatMinutesLabel(87)).toBe("1t 27m");
-    expect(formatMinutesLabel(120)).toBe("2t");
+  it("formats relative labels", () => {
+    expect(formatRelativeLabel(0)).toBe("nå");
+    expect(formatRelativeLabel(-5)).toBe("nå");
+    expect(formatRelativeLabel(7)).toBe("7 min");
+    expect(formatRelativeLabel(59)).toBe("59 min");
+    expect(formatRelativeLabel(60)).toBe("1t 00m");
+    expect(formatRelativeLabel(87)).toBe("1t 27m");
   });
 });
