@@ -223,9 +223,6 @@ export default function App(): JSX.Element {
                   <span>Ferjetider</span>
                 </div>
                 <div className="topbar-meta">
-                  <span className="sambandlist">
-                    Mortavika ↔ Arsvågen · Sandvikvåg ↔ Halhjem
-                  </span>
                   <span className="clock tabular">{formatOsloTime(now)}</span>
                 </div>
               </div>

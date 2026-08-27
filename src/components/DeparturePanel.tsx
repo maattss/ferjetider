@@ -85,11 +85,14 @@ export function DeparturePanel({
     <section className="samband-card">
       <header className="samband-head">
         <div className="samband-crumbs">
-          <span className="samband-name">{sambandName}</span>
-          <span className="sep">·</span>
           <span className="samband-route">
-            {fromLabel} → {toLabel}
+            {fromLabel}
+            <span className="route-arrow" aria-hidden="true">
+              →
+            </span>
+            {toLabel}
           </span>
+          <span className="samband-name">{sambandName}</span>
         </div>
         <StatusIndicator isFallback={isFallback} hasError={error !== null} />
       </header>

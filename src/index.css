@@ -128,10 +128,6 @@ body {
   align-items: center;
   gap: 20px;
 }
-.sambandlist {
-  color: rgba(255, 255, 255, 0.65);
-  letter-spacing: 0.02em;
-}
 .clock {
   font-size: 14px;
   color: #fff;
@@ -288,26 +284,32 @@ body {
   background: var(--surface-2);
 }
 .samband-crumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+/* The crossing is what you came for; the samband is context. */
+.samband-route {
   display: inline-flex;
   align-items: baseline;
-  gap: 10px;
-  font-size: 13px;
+  gap: 8px;
   flex-wrap: wrap;
-}
-.samband-name {
   font-family: var(--display-font);
   font-weight: 600;
   font-size: 19px;
   color: var(--ink);
   letter-spacing: 0.005em;
 }
-.samband-crumbs .sep {
+.route-arrow {
   color: var(--ink-3);
+  font-weight: 400;
 }
-.samband-route {
-  color: var(--ink-2);
-  font-size: 13px;
-  letter-spacing: 0.02em;
+.samband-name {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--ink-3);
 }
 
 .live-dot {
@@ -620,9 +622,6 @@ body {
   }
   .dir-meta {
     justify-self: start;
-  }
-  .topbar-meta .sambandlist {
-    display: none;
   }
   .next-clock {
     font-size: clamp(64px, 18vw, 96px);
