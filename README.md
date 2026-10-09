@@ -14,6 +14,9 @@ Bytt samband, velg retning, og få neste avgang — alt på én side.
 - 🚢 Viser live avganger for `Arsvågen ↔ Mortavika` og `Halhjem ↔ Sandvikvåg`
 - ↔️ Begge retninger på begge samband
 - 🔝 Løfter frem neste avgang tydelig
+- 🧭 Reiseplan: regner ut hvilken ferje på andre samband du rekker (overfartstid fra rutetabellen + ca. 65 min kjøring Arsvågen–Sandvikvåg). Trykk på ferjen du tar, så holder planen seg også etter avgang
+- 🚫 Viser innstilte avganger, forsinkelser og driftsmeldinger fra Entur
+- 💾 Husker sist valgte retning
 - ⏱️ Oppdaterer automatisk hvert 60. sekund
 - 📦 Faller tilbake til sist lagrede data hvis API-et er nede
 - 🧹 Skjuler avganger som allerede har gått, også i lagrede data

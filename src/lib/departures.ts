@@ -4,6 +4,8 @@ import type { Departure } from "@/types/departures";
 export const DEPARTED_GRACE_MS = 60_000;
 /** Used for the approach bar when we cannot infer the real headway. */
 export const FALLBACK_HEADWAY_MS = 20 * 60_000;
+/** A minute or so of drift is noise; past this a delay is worth showing. */
+export const DELAY_THRESHOLD_MINUTES = 2;
 const MIN_HEADWAY_MS = 10 * 60_000;
 const MAX_HEADWAY_MS = 90 * 60_000;
 

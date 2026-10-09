@@ -11,6 +11,10 @@ import type { Departure } from "../src/types/departures";
 function departure(iso: string): Departure {
   return {
     departureTimeIso: iso,
+    aimedDepartureTimeIso: iso,
+    arrivalTimeIso: iso,
+    delayMinutes: 0,
+    cancelled: false,
     displayTime: "00:00",
     minutesUntil: 0,
     destination: "Mortavika",

@@ -26,8 +26,13 @@ const ESTIMATED_CALLS_QUERY = `
     stopPlace(id: $stopPlaceId) {
       id
       name
-      estimatedCalls(numberOfDepartures: $numberOfDepartures) {
+      estimatedCalls(
+        numberOfDepartures: $numberOfDepartures
+        includeCancelledTrips: true
+        whiteListedModes: [water]
+      ) {
         realtime
+        cancellation
         aimedDepartureTime
         expectedDepartureTime
         destinationDisplay {
@@ -37,13 +42,39 @@ const ESTIMATED_CALLS_QUERY = `
           id
           name
         }
+        serviceJourney {
+          passingTimes {
+            departure {
+              time
+            }
+            arrival {
+              time
+            }
+          }
+        }
+        situations {
+          summary {
+            value
+            language
+          }
+        }
       }
     }
   }
 `;
 
-interface EstimatedCallNode {
+interface SituationNode {
+  summary?: Array<{ value?: string | null; language?: string | null }> | null;
+}
+
+interface PassingTimeNode {
+  departure?: { time?: string | null } | null;
+  arrival?: { time?: string | null } | null;
+}
+
+export interface EstimatedCallNode {
   realtime?: boolean;
+  cancellation?: boolean;
   aimedDepartureTime?: string | null;
   expectedDepartureTime?: string | null;
   destinationDisplay?: {
@@ -53,13 +84,19 @@ interface EstimatedCallNode {
     id?: string | null;
     name?: string | null;
   } | null;
+  serviceJourney?: {
+    passingTimes?: PassingTimeNode[] | null;
+  } | null;
+  situations?: SituationNode[] | null;
+}
+
+interface StopPlaceNode {
+  estimatedCalls?: EstimatedCallNode[];
 }
 
 interface EnturGraphResponse {
   data?: {
-    stopPlace?: {
-      estimatedCalls?: EstimatedCallNode[];
-    } | null;
+    stopPlace?: StopPlaceNode | null;
   };
   errors?: Array<{ message?: string }>;
 }
@@ -132,7 +169,47 @@ function matchesDestination(destination: string, aliases: string[]): boolean {
   return aliases.some((alias) => normalizedDestination.includes(normalizeForCompare(alias)));
 }
 
-function normalizeEstimatedCall(call: EstimatedCallNode): Omit<Departure, "displayTime" | "minutesUntil"> | null {
+const SECONDS_PER_DAY = 24 * 60 * 60;
+const MAX_CROSSING_SECONDS = 3 * 60 * 60;
+
+function localTimeToSeconds(value: string | null | undefined): number | null {
+  const match = value?.match(/^(\d{2}):(\d{2})(?::(\d{2}))?$/);
+  if (!match) {
+    return null;
+  }
+  return Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3] ?? 0);
+}
+
+/**
+ * Entur has no live arrival times for these ferries, but the timetable's
+ * passing times give the scheduled crossing for each trip. Times are local
+ * clock times, so a trip across midnight wraps.
+ */
+export function scheduledCrossingMs(call: EstimatedCallNode): number | null {
+  const passingTimes = call.serviceJourney?.passingTimes;
+  if (!passingTimes || passingTimes.length < 2) {
+    return null;
+  }
+
+  const departure = localTimeToSeconds(passingTimes[0].departure?.time);
+  const arrival = localTimeToSeconds(passingTimes[passingTimes.length - 1].arrival?.time);
+  if (departure === null || arrival === null) {
+    return null;
+  }
+
+  const seconds = (arrival - departure + SECONDS_PER_DAY) % SECONDS_PER_DAY;
+  if (seconds <= 0 || seconds > MAX_CROSSING_SECONDS) {
+    return null;
+  }
+  return seconds * 1000;
+}
+
+type NormalizedCall = Omit<Departure, "displayTime" | "minutesUntil">;
+
+function normalizeEstimatedCall(
+  call: EstimatedCallNode,
+  fallbackCrossingMinutes: number,
+): NormalizedCall | null {
   const departureIso = call.expectedDepartureTime ?? call.aimedDepartureTime;
   if (!departureIso) {
     return null;
@@ -143,12 +220,44 @@ function normalizeEstimatedCall(call: EstimatedCallNode): Omit<Departure, "displ
     return null;
   }
 
+  const aimedIso = call.aimedDepartureTime ?? departureIso;
+  const aimedTime = new Date(aimedIso).getTime();
+  const delayMinutes = Number.isNaN(aimedTime)
+    ? 0
+    : Math.max(0, Math.round((date.getTime() - aimedTime) / 60_000));
+
+  const crossingMs = scheduledCrossingMs(call) ?? fallbackCrossingMinutes * 60_000;
+
   return {
     departureTimeIso: departureIso,
+    aimedDepartureTimeIso: aimedIso,
+    arrivalTimeIso: new Date(date.getTime() + crossingMs).toISOString(),
+    delayMinutes,
+    cancelled: Boolean(call.cancellation),
     destination: call.destinationDisplay?.frontText?.trim() || "Ukjent destinasjon",
     quay: call.quay?.name?.trim() || "Ukjent",
     realtime: Boolean(call.realtime),
   };
+}
+
+function situationText(situation: SituationNode): string | null {
+  const summaries = situation.summary ?? [];
+  const norwegian = summaries.find((s) => s.language && /^(no|nb|nob)$/i.test(s.language));
+  const text = (norwegian ?? summaries[0])?.value?.trim();
+  return text || null;
+}
+
+/**
+ * Alerts on the ferry sailings themselves (weather, a vessel out of service),
+ * deduplicated. Stop-wide alerts are left out: at these quays they are mostly
+ * about the buses that also call there.
+ */
+export function collectAlerts(calls: EstimatedCallNode[]): string[] {
+  const texts = calls
+    .flatMap((call) => call.situations ?? [])
+    .map(situationText)
+    .filter((text): text is string => Boolean(text));
+  return [...new Set(texts)];
 }
 
 export function buildDepartures(
@@ -158,8 +267,8 @@ export function buildDepartures(
   now: Date = new Date(),
 ): Departure[] {
   const normalizedCalls = calls
-    .map(normalizeEstimatedCall)
-    .filter((call): call is Omit<Departure, "displayTime" | "minutesUntil"> => Boolean(call))
+    .map((call) => normalizeEstimatedCall(call, directionConfig.crossingMinutes))
+    .filter((call): call is NormalizedCall => Boolean(call))
     .sort(
       (left, right) =>
         new Date(left.departureTimeIso).getTime() - new Date(right.departureTimeIso).getTime(),
@@ -184,10 +293,10 @@ function sendError(
   return res.status(code).json({ error: message });
 }
 
-async function fetchEnturCalls(
+async function fetchEnturStopPlace(
   directionConfig: DirectionConfig,
   limit: number,
-): Promise<EstimatedCallNode[]> {
+): Promise<StopPlaceNode | null> {
   const clientName = process.env.ENTUR_CLIENT_NAME || "ferjetider-app";
   const departuresForFetch = Math.max(limit * 3, 12);
 
@@ -227,7 +336,7 @@ async function fetchEnturCalls(
     throw new Error(`Entur GraphQL-feil: ${firstError}`);
   }
 
-  return payload.data?.stopPlace?.estimatedCalls || [];
+  return payload.data?.stopPlace ?? null;
 }
 
 export default async function handler(
@@ -249,9 +358,15 @@ export default async function handler(
   }
 
   try {
-    const estimatedCalls = await fetchEnturCalls(
+    const stopPlace = await fetchEnturStopPlace(
       parsedRequest.directionConfig,
       parsedRequest.limit,
+    );
+    const estimatedCalls = (stopPlace?.estimatedCalls ?? []).filter((call) =>
+      matchesDestination(
+        call.destinationDisplay?.frontText ?? "",
+        parsedRequest.directionConfig.destinationAliases,
+      ),
     );
 
     const departures = buildDepartures(
@@ -266,6 +381,7 @@ export default async function handler(
       updatedAt: new Date().toISOString(),
       isFallback: false,
       departures,
+      alerts: collectAlerts(estimatedCalls),
     };
 
     res.setHeader("Cache-Control", "s-maxage=30, stale-while-revalidate=60");

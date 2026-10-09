@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
   buildDepartures,
+  collectAlerts,
   default as handler,
+  scheduledCrossingMs,
   parseRequest,
 } from "../api/departures";
 import { getDirectionConfig } from "../src/config/routes";
@@ -136,6 +138,71 @@ describe("api departures", () => {
     expect(departures).toHaveLength(0);
   });
 
+  it("keeps cancelled sailings and reports delay and arrival", () => {
+    const directionConfig = getDirectionConfig(
+      "arsvagen_mortavika",
+      "mortavika_to_arsvagen",
+    );
+
+    const departures = buildDepartures(
+      [
+        {
+          aimedDepartureTime: "2026-02-22T10:00:00.000Z",
+          expectedDepartureTime: "2026-02-22T10:07:00.000Z",
+          destinationDisplay: { frontText: "Arsvågen" },
+          serviceJourney: {
+            passingTimes: [
+              { departure: { time: "11:00:00" }, arrival: { time: "11:00:00" } },
+              { departure: { time: "11:28:00" }, arrival: { time: "11:28:00" } },
+            ],
+          },
+        },
+        {
+          aimedDepartureTime: "2026-02-22T10:20:00.000Z",
+          expectedDepartureTime: "2026-02-22T10:20:00.000Z",
+          destinationDisplay: { frontText: "Arsvågen" },
+          cancellation: true,
+        },
+      ],
+      directionConfig!,
+      6,
+      new Date("2026-02-22T09:50:00.000Z"),
+    );
+
+    expect(departures).toHaveLength(2);
+    expect(departures[0].delayMinutes).toBe(7);
+    expect(departures[0].arrivalTimeIso).toBe("2026-02-22T10:35:00.000Z");
+    expect(departures[1].cancelled).toBe(true);
+    // No passing times: falls back to the configured crossing.
+    expect(departures[1].arrivalTimeIso).toBe("2026-02-22T10:48:00.000Z");
+  });
+
+  it("derives crossing time across midnight", () => {
+    expect(
+      scheduledCrossingMs({
+        serviceJourney: {
+          passingTimes: [
+            { departure: { time: "23:40:00" } },
+            { arrival: { time: "00:25:00" } },
+          ],
+        },
+      }),
+    ).toBe(45 * 60_000);
+    expect(scheduledCrossingMs({})).toBeNull();
+  });
+
+  it("collects deduplicated alerts, preferring Norwegian", () => {
+    const weather = {
+      summary: [
+        { value: "Weather", language: "en" },
+        { value: "Innstilt grunnet vær", language: "no" },
+      ],
+    };
+    expect(
+      collectAlerts([{ situations: [weather] }, { situations: [weather] }, {}]),
+    ).toEqual(["Innstilt grunnet vær"]);
+  });
+
   it("returns 400 for invalid request params", async () => {
     const request = {
       method: "GET",
@@ -193,6 +260,11 @@ describe("api departures", () => {
     expect(response.statusCode).toBe(200);
     expect(response.body?.departures).toHaveLength(1);
     expect(response.body?.departures[0].destination).toBe("Mortavika");
+    const query = JSON.parse(
+      (vi.mocked(fetch).mock.calls[0][1] as RequestInit).body as string,
+    ).query as string;
+    expect(query).toContain("includeCancelledTrips: true");
+    expect(query).toContain("whiteListedModes: [water]");
   });
 
   it("returns 502 when Entur fetch fails", async () => {

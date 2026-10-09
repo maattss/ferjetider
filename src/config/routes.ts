@@ -17,6 +17,8 @@ export interface DirectionConfig {
   fromStopPlaceId: string;
   toStopPlaceId: string;
   destinationAliases: string[];
+  /** Used when Entur's timetable does not give a crossing time for a trip. */
+  crossingMinutes: number;
 }
 
 export interface RouteConfig {
@@ -38,6 +40,7 @@ export const ROUTES: RouteConfig[] = [
         fromStopPlaceId: "NSR:StopPlace:58499",
         toStopPlaceId: "NSR:StopPlace:58653",
         destinationAliases: ["Mortavika"],
+        crossingMinutes: 28,
       },
       {
         key: "mortavika_to_arsvagen",
@@ -47,6 +50,7 @@ export const ROUTES: RouteConfig[] = [
         fromStopPlaceId: "NSR:StopPlace:58653",
         toStopPlaceId: "NSR:StopPlace:58499",
         destinationAliases: ["Arsvågen", "Arsvagen"],
+        crossingMinutes: 28,
       },
     ],
   },
@@ -62,6 +66,7 @@ export const ROUTES: RouteConfig[] = [
         fromStopPlaceId: "NSR:StopPlace:58463",
         toStopPlaceId: "NSR:StopPlace:58462",
         destinationAliases: ["Sandvikvåg", "Sandvikvag"],
+        crossingMinutes: 45,
       },
       {
         key: "sandvikvag_to_halhjem",
@@ -71,6 +76,7 @@ export const ROUTES: RouteConfig[] = [
         fromStopPlaceId: "NSR:StopPlace:58462",
         toStopPlaceId: "NSR:StopPlace:58463",
         destinationAliases: ["Halhjem"],
+        crossingMinutes: 45,
       },
     ],
   },
@@ -113,8 +119,16 @@ export interface TravelDirectionRoute {
 export interface TravelDirectionConfig {
   key: TravelDirectionKey;
   label: string;
-  routes: TravelDirectionRoute[];
+  /** In travel order: the first ferry, then the second. */
+  routes: [TravelDirectionRoute, TravelDirectionRoute];
 }
+
+/**
+ * Driving time between Arsvågen and Sandvikvåg (E39 via Aksdal and Stord),
+ * about 75 km. A rough figure: it sets which second ferry the trip plan
+ * says you will make, so it errs slightly on the slow side.
+ */
+export const DRIVE_BETWEEN_SAMBAND_MINUTES = 65;
 
 export const TRAVEL_DIRECTIONS: TravelDirectionConfig[] = [
   {

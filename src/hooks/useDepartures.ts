@@ -23,7 +23,7 @@ interface UseDeparturesParams {
   limit?: number;
 }
 
-interface UseDeparturesResult {
+export interface UseDeparturesResult {
   data: DeparturesResponse | null;
   error: string | null;
   isLoading: boolean;
