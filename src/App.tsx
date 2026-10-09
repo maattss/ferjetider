@@ -322,13 +322,10 @@ export default function App(): JSX.Element {
             <div>
               <div className="legend-title">Om ferjetider</div>
               <p>
-                Avgangstider for de to ferjesambandene som knytter E39 mellom
-                Stavanger og Bergen. Reisetid Mortavika–Arsvågen er omtrent 28
-                minutter, Sandvikvåg–Halhjem omtrent 45. Reiseplanen regner med
-                ca. {DRIVE_BETWEEN_SAMBAND_MINUTES} minutters kjøring mellom
-                Arsvågen og Sandvikvåg. Avganger merket <em>sanntid</em> spores
-                av Entur akkurat nå; <em>rutetid</em> er den oppsatte ruta, som
-                ennå ikke spores.
+                Overfart ca. 28 min (Mortavika–Arsvågen) og 45 min
+                (Sandvikvåg–Halhjem), med ca. {DRIVE_BETWEEN_SAMBAND_MINUTES} min
+                kjøring imellom. <em>Sanntid</em> spores av Entur nå,{" "}
+                <em>rutetid</em> er oppsatt rute.
               </p>
             </div>
           </section>
