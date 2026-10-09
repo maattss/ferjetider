@@ -69,6 +69,20 @@ describe("api departures", () => {
     expect(parsed?.routeKey).toBe("arsvagen_mortavika");
   });
 
+  it("allows enough departures to reach the second ferry, but caps them", () => {
+    const parse = (limit: string) =>
+      parseRequest({
+        query: {
+          route: "arsvagen_mortavika",
+          direction: "arsvagen_to_mortavika",
+          limit,
+        },
+      } as unknown as VercelRequest)?.limit;
+
+    expect(parse("30")).toBe(30);
+    expect(parse("500")).toBe(30);
+  });
+
   it("rejects invalid route/direction", () => {
     const request = {
       query: {

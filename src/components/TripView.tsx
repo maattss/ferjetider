@@ -35,11 +35,12 @@ export function TripView({
     directionKey: firstRoute.directionKey,
     limit: 7,
   });
-  // The connection can be two hours out, past the first handful of sailings.
+  // The connection is often 3 hours out, more if a later first ferry is
+  // chosen; at daytime 15-minute headways that is well past a dozen sailings.
   const secondQuery = useDepartures({
     routeKey: secondRoute.routeKey,
     directionKey: secondRoute.directionKey,
-    limit: 12,
+    limit: 30,
   });
 
   const { chosen, choose } = useChosenFerry(travelDirection.key, now);
@@ -78,6 +79,9 @@ export function TripView({
         secondRoute={secondRoute}
         connection={connection}
         isChosen={chosenStillSails}
+        secondStatus={
+          secondQuery.data ? "ready" : secondQuery.isLoading ? "loading" : "unavailable"
+        }
         driveMinutes={DRIVE_BETWEEN_SAMBAND_MINUTES}
         now={now}
       />

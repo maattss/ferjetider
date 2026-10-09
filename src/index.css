@@ -696,6 +696,13 @@ button.upcoming-row:hover {
   border-radius: 2px;
   padding: 2px 6px;
 }
+.upcoming-gap {
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  border-bottom: 1px dotted var(--line);
+}
 .upcoming-empty {
   font-size: 13px;
   color: var(--ink-3);

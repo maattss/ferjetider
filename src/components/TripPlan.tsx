@@ -7,6 +7,8 @@ interface TripPlanProps {
   secondRoute: TravelDirectionRoute;
   connection: TripConnection | null;
   isChosen: boolean;
+  /** Without second-leg data, a missing connection means "unknown", not "none". */
+  secondStatus: "ready" | "loading" | "unavailable";
   driveMinutes: number;
   now: Date;
 }
@@ -16,6 +18,7 @@ export function TripPlan({
   secondRoute,
   connection,
   isChosen,
+  secondStatus,
   driveMinutes,
   now,
 }: TripPlanProps): JSX.Element | null {
@@ -70,8 +73,14 @@ export function TripPlan({
             </li>
           </>
         ) : (
-          <li className="trip-step missing">
-            <span className="ts-place">Ingen kjente avganger</span>
+          <li className={`trip-step ${secondStatus === "loading" ? "" : "missing"}`}>
+            <span className="ts-place">
+              {secondStatus === "loading"
+                ? "Henter avganger…"
+                : secondStatus === "unavailable"
+                  ? "Mangler data"
+                  : "Ingen kjente avganger"}
+            </span>
             <span className="ts-note">
               fra {secondRoute.fromLabel} etter {formatOsloTime(atSecondQuayMs)}
             </span>

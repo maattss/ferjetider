@@ -14,6 +14,8 @@ import { departureId } from "@/lib/trip";
 import type { Departure } from "@/types/departures";
 
 const MIN_LIST_ROWS = 4;
+/** Rows kept above the gap when the highlighted sailing is far down. */
+const LEAD_ROWS = 2;
 
 interface DeparturePanelProps {
   route: TravelDirectionRoute;
@@ -78,12 +80,22 @@ export function DeparturePanel({
     .filter((d) => d.cancelled);
   const laterAll = nextIndex >= 0 ? departures.slice(nextIndex + 1) : [];
 
-  // Keep the highlighted sailing on screen even when it is far down the list.
+  // Keep the highlighted sailing on screen without listing every sailing
+  // before it: with 15-minute headways it can be a dozen rows down.
   const markedIndex = laterAll.findIndex((d) => {
     const id = departureId(d);
     return id === catchId || id === chosenId;
   });
-  const laterDepartures = laterAll.slice(0, Math.max(MIN_LIST_ROWS, markedIndex + 1));
+  const isFarDown = markedIndex >= MIN_LIST_ROWS;
+  const laterDepartures = isFarDown
+    ? [
+        ...laterAll.slice(0, LEAD_ROWS),
+        ...laterAll.slice(markedIndex, markedIndex + 2),
+      ]
+    : laterAll.slice(0, MIN_LIST_ROWS);
+  const gap = isFarDown
+    ? { afterIndex: LEAD_ROWS - 1, skipped: markedIndex - LEAD_ROWS }
+    : null;
 
   const diffMs = nextDeparture
     ? new Date(nextDeparture.departureTimeIso).getTime() - now.getTime()
@@ -234,6 +246,7 @@ export function DeparturePanel({
           chosenId={chosenId}
           catchId={catchId}
           onSelect={onSelect}
+          gap={gap}
         />
       </div>
     </section>

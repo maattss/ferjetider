@@ -11,6 +11,8 @@ interface DepartureListProps {
   chosenId?: string | null;
   catchId?: string | null;
   onSelect?: (departure: Departure) => void;
+  /** Sailings left out between two rows, shown as a single "⋯" row. */
+  gap?: { afterIndex: number; skipped: number } | null;
 }
 
 function LoadingRows(): JSX.Element {
@@ -62,6 +64,7 @@ export function DepartureList({
   chosenId = null,
   catchId = null,
   onSelect,
+  gap = null,
 }: DepartureListProps): JSX.Element {
   if (isLoading && departures.length === 0) {
     return <LoadingRows />;
@@ -73,7 +76,7 @@ export function DepartureList({
 
   return (
     <ol className="upcoming-list">
-      {departures.map((d) => {
+      {departures.map((d, index) => {
         const mins = minutesUntilDeparture(d.departureTimeIso, now);
         const id = departureId(d);
         const isChosen = id === chosenId;
@@ -107,7 +110,15 @@ export function DepartureList({
           </>
         );
 
-        return (
+        const gapRow =
+          gap && index === gap.afterIndex + 1 ? (
+            <li key="gap" className="upcoming-gap" aria-label={`${gap.skipped} avganger utelatt`}>
+              ⋯ {gap.skipped} {gap.skipped === 1 ? "avgang" : "avganger"}
+            </li>
+          ) : null;
+
+        return [
+          gapRow,
           <li key={`${d.departureTimeIso}-${d.destination}-${d.quay}`}>
             {onSelect && !d.cancelled ? (
               <button
@@ -121,8 +132,8 @@ export function DepartureList({
             ) : (
               <div className={className}>{content}</div>
             )}
-          </li>
-        );
+          </li>,
+        ];
       })}
     </ol>
   );

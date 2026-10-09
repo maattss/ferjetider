@@ -18,7 +18,9 @@ import type {
 
 const ENTUR_ENDPOINT = "https://api.entur.io/journey-planner/v3/graphql";
 const DEFAULT_LIMIT = 6;
-const MAX_LIMIT = 12;
+// Daytime sailings run every ~15 min and the trip plan looks up to ~5 hours
+// ahead for the second ferry, so the ceiling has to cover that.
+const MAX_LIMIT = 30;
 const ENTUR_TIMEOUT_MS = 5_000;
 
 const ESTIMATED_CALLS_QUERY = `
@@ -298,7 +300,9 @@ async function fetchEnturStopPlace(
   limit: number,
 ): Promise<StopPlaceNode | null> {
   const clientName = process.env.ENTUR_CLIENT_NAME || "ferjetider-app";
-  const departuresForFetch = Math.max(limit * 3, 12);
+  // Only ferries are requested, but keep headroom for sailings the destination
+  // filter drops.
+  const departuresForFetch = Math.max(limit * 2, 12);
 
   let response: Response;
   try {
