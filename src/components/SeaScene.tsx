@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-
 const MIDNIGHT_PALETTE = {
   skyTop: "#0d1a2c",
   skyBottom: "#1a2f4a",
@@ -14,39 +12,33 @@ const MIDNIGHT_PALETTE = {
   ferryAccent: "#ffd15c",
 };
 
-/** ~20fps — plenty for slow wave motion, a third of the renders of full rAF. */
-const FRAME_INTERVAL_MS = 50;
+const WAVE_COUNT = 5;
+const WAVE_K = 0.02;
+/** One full wavelength in viewBox units; shifting by this is seamless. */
+const WAVELENGTH = (2 * Math.PI) / WAVE_K;
 
-interface SeaSceneProps {
-  reducedMotion: boolean;
-}
+/**
+ * Each wave is drawn once, one wavelength wider than the scene, and slid
+ * sideways by a CSS animation. The browser composites that without React
+ * re-rendering anything, which matters on slow in-car browsers.
+ */
+const WAVES = Array.from({ length: WAVE_COUNT }, (_, i) => {
+  const y = 182 + i * 14;
+  const amp = 1.5 + i * 0.3;
+  const pts: string[] = [];
+  for (let x = 0; x <= 1200 + WAVELENGTH + 20; x += 20) {
+    pts.push(`${x},${(y + Math.sin(x * WAVE_K) * amp).toFixed(1)}`);
+  }
+  // Phase speed in rad/s, as in the original hand-tuned scene.
+  const speed = 0.3 + i * 0.08;
+  return {
+    points: pts.join(" "),
+    opacity: 0.12 + i * 0.04,
+    durationS: ((2 * Math.PI) / speed).toFixed(2),
+  };
+});
 
-export function SeaScene({ reducedMotion }: SeaSceneProps): JSX.Element {
-  const [t, setT] = useState(0);
-
-  useEffect(() => {
-    if (reducedMotion) {
-      return;
-    }
-    let raf = 0;
-    const start = performance.now();
-    let lastFrame = 0;
-    const loop = (now: number) => {
-      // The waves and the ferry both move slowly; re-rendering the whole SVG at
-      // display refresh rate burns battery for no visible gain.
-      if (now - lastFrame >= FRAME_INTERVAL_MS) {
-        lastFrame = now;
-        setT((now - start) / 1000);
-      }
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, [reducedMotion]);
-
-  const period = 70;
-  const progress = reducedMotion ? 0.35 : (t % period) / period;
-  const ferryX = -80 + progress * 1280;
+export function SeaScene(): JSX.Element {
   const p = MIDNIGHT_PALETTE;
 
   return (
@@ -78,28 +70,23 @@ export function SeaScene({ reducedMotion }: SeaSceneProps): JSX.Element {
         opacity="0.75"
       />
       <rect x="0" y="170" width="1200" height="90" fill="url(#seaGrad)" />
-      {Array.from({ length: 5 }).map((_, i) => {
-        const y = 182 + i * 14;
-        const phase = (t * (0.3 + i * 0.08)) % (Math.PI * 2);
-        const amp = 1.5 + i * 0.3;
-        const pts: string[] = [];
-        for (let x = 0; x <= 1200; x += 20) {
-          const yy = y + Math.sin(x * 0.02 + phase) * amp;
-          pts.push(`${x},${yy.toFixed(1)}`);
-        }
-        return (
-          <polyline
-            key={i}
-            points={pts.join(" ")}
-            fill="none"
-            stroke={p.wave}
-            strokeWidth="0.7"
-            opacity={0.12 + i * 0.04}
-          />
-        );
-      })}
-      <g transform={`translate(${ferryX.toFixed(1)}, 162)`}>
-        <g transform={`translate(0, ${(Math.sin(t * 1.2) * 1.2).toFixed(2)})`}>
+      {WAVES.map((wave, i) => (
+        <polyline
+          key={i}
+          className="sea-wave"
+          style={{
+            animationDuration: `${wave.durationS}s`,
+            ["--wavelength" as string]: `${-WAVELENGTH}px`,
+          }}
+          points={wave.points}
+          fill="none"
+          stroke={p.wave}
+          strokeWidth="0.7"
+          opacity={wave.opacity}
+        />
+      ))}
+      <g className="sea-ferry">
+        <g className="sea-ferry-bob">
           <path d="M 0 8 L 4 16 L 84 16 L 90 8 Z" fill={p.ferryHull} />
           <rect x="8" y="0" width="70" height="8" fill={p.ferryBody} />
           {Array.from({ length: 12 }).map((_, i) => (

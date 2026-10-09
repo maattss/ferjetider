@@ -1,18 +1,34 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import {
+  DRIVE_BETWEEN_SAMBAND_MINUTES,
   TRAVEL_DIRECTIONS,
   TRAVEL_DIRECTION_MAP,
   type TravelDirectionKey,
   isTravelDirectionKey,
 } from "@/config/routes";
-import { DeparturePanel } from "@/components/DeparturePanel";
 import { SeaScene } from "@/components/SeaScene";
+import { TripView } from "@/components/TripView";
 import { useNow } from "@/hooks/useNow";
+import { readStorage, writeStorage } from "@/lib/storage";
 import { formatOsloTime } from "@/lib/time";
 
 const DEFAULT_TRAVEL_DIRECTION = TRAVEL_DIRECTIONS[0].key;
 const DEFAULT_SITE_ORIGIN = "https://ferjetider.fyi";
+const DIRECTION_STORAGE_KEY = "ferjetider:travelDirection";
+
+/** A shared link wins; otherwise reopen in the direction last driven. */
+function initialTravelDirection(): TravelDirectionKey {
+  if (typeof window === "undefined") {
+    return DEFAULT_TRAVEL_DIRECTION;
+  }
+  const fromUrl = new URLSearchParams(window.location.search).get("travelDirection");
+  if (fromUrl && isTravelDirectionKey(fromUrl)) {
+    return fromUrl;
+  }
+  const stored = readStorage(DIRECTION_STORAGE_KEY);
+  return stored && isTravelDirectionKey(stored) ? stored : DEFAULT_TRAVEL_DIRECTION;
+}
 
 function setMetaContent(selector: string, value: string): void {
   const meta = document.querySelector(selector);
@@ -39,9 +55,8 @@ function setJsonLd(content: string): void {
 
 export default function App(): JSX.Element {
   const [travelDirectionKey, setTravelDirectionKey] =
-    useState<TravelDirectionKey>(DEFAULT_TRAVEL_DIRECTION);
+    useState<TravelDirectionKey>(initialTravelDirection);
   const [siteOrigin, setSiteOrigin] = useState(DEFAULT_SITE_ORIGIN);
-  const [reducedMotion, setReducedMotion] = useState(false);
   const [updatedAtByPanel, setUpdatedAtByPanel] = useState<
     Record<string, string>
   >({});
@@ -75,25 +90,14 @@ export default function App(): JSX.Element {
     }
 
     setSiteOrigin(window.location.origin);
-
-    const params = new URLSearchParams(window.location.search);
-    const tdParam = params.get("travelDirection");
-
-    if (tdParam && isTravelDirectionKey(tdParam)) {
-      setTravelDirectionKey(tdParam);
-    }
-
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(mq.matches);
-    const listener = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
-    mq.addEventListener("change", listener);
-    return () => mq.removeEventListener("change", listener);
   }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
+
+    writeStorage(DIRECTION_STORAGE_KEY, travelDirectionKey);
 
     const params = new URLSearchParams(window.location.search);
     const isDefault = travelDirectionKey === DEFAULT_TRAVEL_DIRECTION;
@@ -243,7 +247,7 @@ export default function App(): JSX.Element {
     <>
       <div className="page">
         <header className="hero">
-          <SeaScene reducedMotion={reducedMotion} />
+          <SeaScene />
           <div className="hero-overlay">
             <div className="hero-inner">
               <div className="topbar">
@@ -267,7 +271,7 @@ export default function App(): JSX.Element {
                 </div>
               </div>
               <h1 className="hero-title">
-                Ferjeavganger på <em>E39</em>
+                Ferjeavganger på <em>E39</em>{" "}
                 <br />
                 mellom Stavanger &amp; Bergen
               </h1>
@@ -307,31 +311,21 @@ export default function App(): JSX.Element {
         </div>
 
         <main className="main">
-          <div className="cards">
-            {travelDirection.routes.map((route) => (
-              <DeparturePanel
-                key={`${route.routeKey}-${route.directionKey}`}
-                routeKey={route.routeKey}
-                directionKey={route.directionKey}
-                fromLabel={route.fromLabel}
-                toLabel={route.toLabel}
-                sambandName={route.sambandName}
-                fromRegion={route.fromRegion}
-                now={now}
-                onUpdated={handlePanelUpdated}
-              />
-            ))}
-          </div>
+          <TripView
+            key={travelDirectionKey}
+            travelDirection={travelDirection}
+            now={now}
+            onUpdated={handlePanelUpdated}
+          />
 
           <section className="legend">
             <div>
               <div className="legend-title">Om ferjetider</div>
               <p>
-                Avgangstider for de to ferjesambandene som knytter E39 mellom
-                Stavanger og Bergen. Reisetid Mortavika–Arsvågen er omtrent 25
-                minutter, Sandvikvåg–Halhjem omtrent 40. Avganger merket{" "}
-                <em>sanntid</em> spores av Entur akkurat nå; <em>rutetid</em>{" "}
-                er den oppsatte ruta, som ennå ikke spores.
+                Overfart ca. 28 min (Mortavika–Arsvågen) og 45 min
+                (Sandvikvåg–Halhjem), med ca. {DRIVE_BETWEEN_SAMBAND_MINUTES} min
+                kjøring imellom. <em>Sanntid</em> spores av Entur nå,{" "}
+                <em>rutetid</em> er oppsatt rute.
               </p>
             </div>
           </section>

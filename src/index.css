@@ -81,6 +81,40 @@ body {
   display: block;
 }
 
+/* Scene animation runs on the compositor; see SeaScene. */
+.sea-wave {
+  animation: sea-wave linear infinite;
+}
+@keyframes sea-wave {
+  to {
+    transform: translateX(var(--wavelength));
+  }
+}
+.sea-ferry {
+  /* Parked mid-fjord when motion is reduced. */
+  transform: translate(368px, 162px);
+  animation: sea-ferry 70s linear infinite;
+}
+@keyframes sea-ferry {
+  from {
+    transform: translate(-80px, 162px);
+  }
+  to {
+    transform: translate(1200px, 162px);
+  }
+}
+.sea-ferry-bob {
+  animation: sea-bob 2.6s ease-in-out infinite alternate;
+}
+@keyframes sea-bob {
+  from {
+    transform: translateY(-1.2px);
+  }
+  to {
+    transform: translateY(1.2px);
+  }
+}
+
 .hero-overlay {
   position: relative;
   z-index: 2;
@@ -464,6 +498,55 @@ body {
   background: var(--err);
 }
 
+.next-block.catch {
+  box-shadow: inset 3px 0 0 var(--ok);
+}
+.delay {
+  color: var(--warn);
+}
+.cancelled-note {
+  margin: 14px 0 0;
+  font-size: 14px;
+  color: var(--err);
+}
+.choose {
+  margin-top: 18px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink-2);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 10px 18px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.choose:hover {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+.choose.active {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  background: color-mix(in oklab, var(--accent) 12%, transparent);
+}
+
+.alerts {
+  list-style: none;
+  margin: 0;
+  padding: 12px 24px;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--warn);
+  background: color-mix(in oklab, var(--warn) 9%, transparent);
+  border-bottom: 1px solid var(--line);
+}
+.alerts li::before {
+  content: "⚠ ";
+}
+
 .next-error {
   font-size: 13px;
   line-height: 1.55;
@@ -523,8 +606,68 @@ body {
   font-size: 14px;
   border-bottom: 1px dotted var(--line);
 }
-.upcoming-row:last-child {
+.upcoming-list li:last-child .upcoming-row {
   border-bottom: 0;
+}
+button.upcoming-row {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border-top: 0;
+  border-left: 0;
+  border-right: 0;
+  cursor: pointer;
+  /* Big enough to hit on a car touchscreen. */
+  min-height: 52px;
+}
+button.upcoming-row:hover {
+  background: var(--surface-2);
+}
+.upcoming-row.marked {
+  background: color-mix(in oklab, var(--ok) 10%, transparent);
+  box-shadow: inset 3px 0 0 var(--ok);
+  padding-left: 10px;
+}
+.upcoming-row.marked[aria-pressed="true"] {
+  background: color-mix(in oklab, var(--accent) 12%, transparent);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.upcoming-row.cancelled .u-time {
+  color: var(--ink-3);
+  text-decoration: line-through;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.next-label .badge {
+  margin-left: 10px;
+}
+.badge.ok {
+  color: var(--ok);
+  background: color-mix(in oklab, var(--ok) 16%, transparent);
+}
+.badge.accent {
+  color: var(--accent-strong);
+  background: color-mix(in oklab, var(--accent) 18%, transparent);
+}
+.badge.warn {
+  color: var(--warn);
+  background: color-mix(in oklab, var(--warn) 16%, transparent);
+}
+.badge.err {
+  color: var(--err);
+  background: color-mix(in oklab, var(--err) 16%, transparent);
 }
 .u-time {
   font-family: var(--display-font);
@@ -552,6 +695,13 @@ body {
   border: 1px solid var(--line);
   border-radius: 2px;
   padding: 2px 6px;
+}
+.upcoming-gap {
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  border-bottom: 1px dotted var(--line);
 }
 .upcoming-empty {
   font-size: 13px;
@@ -591,6 +741,89 @@ body {
   50% {
     opacity: 0.8;
   }
+}
+
+/* ============================================================
+   TRIP PLAN
+============================================================ */
+.trip-plan {
+  margin-bottom: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 16px 24px 18px;
+}
+.trip-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.trip-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--ink-3);
+}
+.trip-hint {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.trip-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 4px;
+}
+.trip-step {
+  display: grid;
+  gap: 2px;
+  padding: 8px 12px;
+  border-left: 1px solid var(--line);
+}
+.trip-step:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+.ts-time {
+  font-family: var(--display-font);
+  font-weight: 500;
+  font-size: 30px;
+  line-height: 1.05;
+  color: var(--ink);
+}
+.ts-place {
+  font-size: 15px;
+  color: var(--ink);
+}
+.ts-note {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.trip-step.catch {
+  background: color-mix(in oklab, var(--ok) 12%, transparent);
+  border-left: 3px solid var(--ok);
+  border-radius: 2px;
+}
+.trip-step.catch .ts-time,
+.trip-step.catch .ts-note {
+  color: var(--ok);
+}
+.trip-step.catch.tight {
+  background: color-mix(in oklab, var(--warn) 12%, transparent);
+  border-left-color: var(--warn);
+}
+.trip-step.catch.tight .ts-time,
+.trip-step.catch.tight .ts-note {
+  color: var(--warn);
+}
+.trip-step.missing .ts-place {
+  color: var(--warn);
 }
 
 /* ============================================================
@@ -636,6 +869,9 @@ body {
    RESPONSIVE
 ============================================================ */
 @media (max-width: 880px) {
+  .hero {
+    height: 200px;
+  }
   .cards {
     grid-template-columns: 1fr;
   }
@@ -662,9 +898,50 @@ body {
   .cd-num {
     font-size: 42px;
   }
+  .trip-plan {
+    padding: 14px 18px;
+  }
+  .trip-steps {
+    grid-auto-flow: row;
+    grid-template-columns: 1fr 1fr;
+  }
+  .trip-step,
+  .trip-step:first-child {
+    border-left: 0;
+    padding: 8px 10px;
+  }
+  .ts-time {
+    font-size: 24px;
+  }
+}
+
+/* Landscape screens that are short on height (the Tesla browser among them):
+   the departures matter more than the scenery, so the hero shrinks to a band. */
+@media (min-width: 881px) and (max-height: 1000px) {
+  .hero {
+    height: 150px;
+  }
+  .hero-inner {
+    padding-top: calc(18px + env(safe-area-inset-top, 0px));
+    padding-bottom: 20px;
+  }
+  .hero-title {
+    font-size: 26px;
+  }
+  .hero-title br {
+    display: none;
+  }
+  .main {
+    padding-top: 24px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .sea-wave,
+  .sea-ferry,
+  .sea-ferry-bob {
+    animation: none;
+  }
   .live-dot span {
     animation: none;
   }
