@@ -20,9 +20,14 @@ const DRIVE_MS = DRIVE_BETWEEN_SAMBAND_MINUTES * 60_000;
 interface TripViewProps {
   travelDirection: TravelDirectionConfig;
   now: Date;
+  onUpdated?: (panelKey: string, updatedAt: string | null) => void;
 }
 
-export function TripView({ travelDirection, now }: TripViewProps): JSX.Element {
+export function TripView({
+  travelDirection,
+  now,
+  onUpdated,
+}: TripViewProps): JSX.Element {
   const [firstRoute, secondRoute] = travelDirection.routes;
 
   const firstQuery = useDepartures({
@@ -83,12 +88,14 @@ export function TripView({ travelDirection, now }: TripViewProps): JSX.Element {
           now={now}
           chosenId={chosenStillSails && first ? departureId(first) : null}
           onSelect={handleSelect}
+          onUpdated={onUpdated}
         />
         <DeparturePanel
           route={secondRoute}
           query={secondQuery}
           now={now}
           catchId={connection?.second ? departureId(connection.second) : null}
+          onUpdated={onUpdated}
         />
       </div>
     </>

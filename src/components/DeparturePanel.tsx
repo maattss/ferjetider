@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { DepartureList } from "@/components/DepartureList";
 import type { TravelDirectionRoute } from "@/config/routes";
 import type { UseDeparturesResult } from "@/hooks/useDepartures";
@@ -23,6 +24,7 @@ interface DeparturePanelProps {
   onSelect?: (departure: Departure) => void;
   /** Second leg: the sailing the trip plan says you make. */
   catchId?: string | null;
+  onUpdated?: (panelKey: string, updatedAt: string | null) => void;
 }
 
 function StatusIndicator({
@@ -63,6 +65,7 @@ export function DeparturePanel({
   chosenId = null,
   onSelect,
   catchId = null,
+  onUpdated,
 }: DeparturePanelProps): JSX.Element {
   const { fromLabel, toLabel, sambandName, fromRegion } = route;
   const { data, error, isFallback, isLoading, isFetching, refetch } = query;
@@ -103,15 +106,25 @@ export function DeparturePanel({
   const nextIsChosen = nextId !== null && nextId === chosenId;
   const isDelayed = (nextDeparture?.delayMinutes ?? 0) >= DELAY_THRESHOLD_MINUTES;
 
+  const panelKey = `${route.routeKey}-${route.directionKey}`;
+  const updatedAt = data?.updatedAt ?? null;
+
+  useEffect(() => {
+    onUpdated?.(panelKey, updatedAt);
+  }, [onUpdated, panelKey, updatedAt]);
+
   return (
     <section className="samband-card">
       <header className="samband-head">
         <div className="samband-crumbs">
-          <span className="samband-name">{sambandName}</span>
-          <span className="sep">·</span>
           <span className="samband-route">
-            {fromLabel} → {toLabel}
+            {fromLabel}
+            <span className="route-arrow" aria-hidden="true">
+              →
+            </span>
+            {toLabel}
           </span>
+          <span className="samband-name">{sambandName}</span>
         </div>
         <StatusIndicator isFallback={isFallback} hasError={error !== null} />
       </header>
@@ -132,6 +145,11 @@ export function DeparturePanel({
         >
           <div className="next-label">
             Neste avgang
+            <span
+              className={`rt-flag ${nextDeparture.realtime ? "live" : ""}`}
+            >
+              {nextDeparture.realtime ? "sanntid" : "rutetid"}
+            </span>
             {nextIsCatch && <span className="badge ok">Du rekker</span>}
             {nextIsChosen && <span className="badge accent">Valgt</span>}
           </div>

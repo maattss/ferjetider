@@ -96,7 +96,14 @@ export function DepartureList({
                 isCatch={isCatch}
               />
             </span>
-            <span className="u-in tabular">om {formatRelativeLabel(mins)}</span>
+            <span className="u-in tabular">
+              {!d.realtime && !d.cancelled && (
+                <span className="u-planned" title="Rutetid, ikke sanntidssporet">
+                  rutetid
+                </span>
+              )}
+              om {formatRelativeLabel(mins)}
+            </span>
           </>
         );
 
