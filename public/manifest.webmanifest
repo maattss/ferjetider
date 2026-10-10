@@ -8,8 +8,8 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#0a1220",
-  "theme_color": "#0a1220",
+  "background_color": "#0f1013",
+  "theme_color": "#0f1013",
   "categories": ["travel", "navigation", "utilities"],
   "icons": [
     {

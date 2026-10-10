@@ -214,7 +214,17 @@ describe("api departures", () => {
     };
     expect(
       collectAlerts([{ situations: [weather] }, { situations: [weather] }, {}]),
-    ).toEqual(["Innstilt grunnet vær"]);
+    ).toEqual([{ summary: "Innstilt grunnet vær", description: null }]);
+  });
+
+  it("carries the description behind a generic summary", () => {
+    const notice = {
+      summary: [{ value: "Trafikkmelding", language: null }],
+      description: [{ value: "Suppleringsruten er innstilt søndag.", language: null }],
+    };
+    expect(collectAlerts([{ situations: [notice] }])).toEqual([
+      { summary: "Trafikkmelding", description: "Suppleringsruten er innstilt søndag." },
+    ]);
   });
 
   it("returns 400 for invalid request params", async () => {

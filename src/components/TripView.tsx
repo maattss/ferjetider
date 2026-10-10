@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   DRIVE_BETWEEN_SAMBAND_MINUTES,
   type TravelDirectionConfig,
@@ -43,6 +44,15 @@ export function TripView({
     limit: 30,
   });
 
+  const firstUpdatedAt = firstQuery.data?.updatedAt ?? null;
+  const secondUpdatedAt = secondQuery.data?.updatedAt ?? null;
+  useEffect(() => {
+    onUpdated?.(`${firstRoute.routeKey}-${firstRoute.directionKey}`, firstUpdatedAt);
+  }, [onUpdated, firstRoute, firstUpdatedAt]);
+  useEffect(() => {
+    onUpdated?.(`${secondRoute.routeKey}-${secondRoute.directionKey}`, secondUpdatedAt);
+  }, [onUpdated, secondRoute, secondUpdatedAt]);
+
   const { chosen, choose } = useChosenFerry(travelDirection.key, now);
 
   const firstDepartures = upcomingDepartures(firstQuery.data?.departures ?? [], now);
@@ -73,35 +83,24 @@ export function TripView({
   };
 
   return (
-    <>
+    <div className="board">
+      <DeparturePanel
+        route={firstRoute}
+        query={firstQuery}
+        departures={firstDepartures}
+        now={now}
+        target={first}
+        chosenId={chosenStillSails && first ? departureId(first) : null}
+        onSelect={handleSelect}
+        onReset={chosenStillSails ? () => choose(null) : undefined}
+      />
       <TripPlan
-        firstRoute={firstRoute}
-        secondRoute={secondRoute}
+        route={secondRoute}
+        query={secondQuery}
+        departures={secondDepartures}
         connection={connection}
-        isChosen={chosenStillSails}
-        secondStatus={
-          secondQuery.data ? "ready" : secondQuery.isLoading ? "loading" : "unavailable"
-        }
-        driveMinutes={DRIVE_BETWEEN_SAMBAND_MINUTES}
         now={now}
       />
-      <div className="cards">
-        <DeparturePanel
-          route={firstRoute}
-          query={firstQuery}
-          now={now}
-          chosenId={chosenStillSails && first ? departureId(first) : null}
-          onSelect={handleSelect}
-          onUpdated={onUpdated}
-        />
-        <DeparturePanel
-          route={secondRoute}
-          query={secondQuery}
-          now={now}
-          catchId={connection?.second ? departureId(connection.second) : null}
-          onUpdated={onUpdated}
-        />
-      </div>
-    </>
+    </div>
   );
 }

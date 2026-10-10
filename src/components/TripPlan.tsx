@@ -1,92 +1,110 @@
+import { CardHead, LoadError } from "@/components/CardParts";
+import { DepartureList } from "@/components/DepartureList";
 import type { TravelDirectionRoute } from "@/config/routes";
+import type { UseDeparturesResult } from "@/hooks/useDepartures";
 import { TIGHT_MARGIN_MS, type TripConnection } from "@/lib/trip";
 import { formatOsloTime } from "@/lib/time";
+import type { Departure } from "@/types/departures";
 
 interface TripPlanProps {
-  firstRoute: TravelDirectionRoute;
-  secondRoute: TravelDirectionRoute;
+  route: TravelDirectionRoute;
+  query: UseDeparturesResult;
+  departures: Departure[];
   connection: TripConnection | null;
-  isChosen: boolean;
-  /** Without second-leg data, a missing connection means "unknown", not "none". */
-  secondStatus: "ready" | "loading" | "unavailable";
-  driveMinutes: number;
   now: Date;
 }
 
+function Fact({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "ok" | "warn" | "muted";
+}): JSX.Element {
+  return (
+    <div className="row fact">
+      <span className="fact-label">{label}</span>
+      <span className={`fact-value tabular ${tone ?? ""}`}>{value}</span>
+    </div>
+  );
+}
+
+/** The second leg, answered as "which ferry do I make?" rather than a timetable. */
 export function TripPlan({
-  firstRoute,
-  secondRoute,
+  route,
+  query,
+  departures,
   connection,
-  isChosen,
-  secondStatus,
-  driveMinutes,
   now,
-}: TripPlanProps): JSX.Element | null {
+}: TripPlanProps): JSX.Element {
+  const head = <CardHead route={route} query={query} />;
+
+  // No first ferry to plan from yet: show the plain timetable instead.
   if (!connection) {
-    return null;
+    return (
+      <section className="card">
+        {head}
+        {query.error !== null && query.data === null && !query.isLoading ? (
+          <LoadError query={query} />
+        ) : (
+          <DepartureList departures={departures.slice(0, 4)} isLoading={query.isLoading} now={now} />
+        )}
+      </section>
+    );
   }
 
-  const { first, second, firstArrivalMs, atSecondQuayMs, marginMs } = connection;
-  const firstSailed = new Date(first.departureTimeIso).getTime() < now.getTime();
-  const marginMin = marginMs === null ? null : Math.round(marginMs / 60_000);
+  const { second, atSecondQuayMs, marginMs } = connection;
+  const quayTime = formatOsloTime(atSecondQuayMs);
+
+  if (!second) {
+    return (
+      <section className="card">
+        {head}
+        {query.error !== null && query.data === null && !query.isLoading ? (
+          <LoadError query={query} />
+        ) : (
+          <div className="hero">
+            <div className="hero-sub">
+              {query.isLoading
+                ? "Henter avganger…"
+                : `Ingen kjente avganger etter ${quayTime}`}
+            </div>
+          </div>
+        )}
+        <div className="rows">
+          <Fact label="På kaia ca." value={quayTime} />
+        </div>
+      </section>
+    );
+  }
+
   const isTight = marginMs !== null && marginMs < TIGHT_MARGIN_MS;
+  const marginMin = marginMs === null ? 0 : Math.round(marginMs / 60_000);
+  const secondMs = new Date(second.departureTimeIso).getTime();
+  const nextAfter = departures.find(
+    (d) => !d.cancelled && new Date(d.departureTimeIso).getTime() > secondMs,
+  );
 
   return (
-    <section className="trip-plan" aria-label="Reiseplan">
-      <div className="trip-head">
-        <span className="trip-label">Reiseplan</span>
-        <span className="trip-hint">
-          {isChosen
-            ? "Din valgte ferje · trykk den igjen for å nullstille"
-            : "Tar du en senere ferje? Trykk på den i listen"}
-        </span>
+    <section className="card">
+      {head}
+      <div className={`hero ${isTight ? "tight" : "catch"}`}>
+        <div className="hero-figure">
+          <span className="hero-num tabular">{second.displayTime}</span>
+          <span className="hero-unit">{isTight ? "knapt" : "du rekker"}</span>
+        </div>
+        <div className="hero-sub">
+          {second.realtime ? "sanntid" : "rutetid"} · beregnet fra ferja du tar
+        </div>
       </div>
-      <ol className="trip-steps">
-        <li className="trip-step">
-          <span className="ts-time tabular">{first.displayTime}</span>
-          <span className="ts-place">{firstRoute.fromLabel}</span>
-          <span className="ts-note">{firstSailed ? "ferjen har gått" : "ferje"}</span>
-        </li>
-        <li className="trip-step">
-          <span className="ts-time tabular">~{formatOsloTime(firstArrivalMs)}</span>
-          <span className="ts-place">{firstRoute.toLabel}</span>
-          <span className="ts-note">kjør ca. {driveMinutes} min</span>
-        </li>
-        <li className="trip-step">
-          <span className="ts-time tabular">~{formatOsloTime(atSecondQuayMs)}</span>
-          <span className="ts-place">{secondRoute.fromLabel}</span>
-          <span className="ts-note">på kaia</span>
-        </li>
-        {second ? (
-          <>
-            <li className={`trip-step catch ${isTight ? "tight" : ""}`}>
-              <span className="ts-time tabular">{second.displayTime}</span>
-              <span className="ts-place">Du rekker</span>
-              <span className="ts-note">
-                {isTight ? `knapt · ${marginMin} min margin` : `${marginMin} min margin`}
-              </span>
-            </li>
-            <li className="trip-step">
-              <span className="ts-time tabular">~{formatOsloTime(second.arrivalTimeIso)}</span>
-              <span className="ts-place">{secondRoute.toLabel}</span>
-              <span className="ts-note">fremme</span>
-            </li>
-          </>
-        ) : (
-          <li className={`trip-step ${secondStatus === "loading" ? "" : "missing"}`}>
-            <span className="ts-place">
-              {secondStatus === "loading"
-                ? "Henter avganger…"
-                : secondStatus === "unavailable"
-                  ? "Mangler data"
-                  : "Ingen kjente avganger"}
-            </span>
-            <span className="ts-note">
-              fra {secondRoute.fromLabel} etter {formatOsloTime(atSecondQuayMs)}
-            </span>
-          </li>
-        )}
-      </ol>
+      <div className="rows">
+        <Fact label="På kaia ca." value={quayTime} />
+        <Fact label="Margin" value={`${marginMin} min`} tone={isTight ? "warn" : "ok"} />
+        <Fact label={`Fremme ${route.toLabel}`} value={`~${formatOsloTime(second.arrivalTimeIso)}`} />
+        {nextAfter && <Fact label="Neste etter" value={nextAfter.displayTime} tone="muted" />}
+      </div>
     </section>
   );
 }

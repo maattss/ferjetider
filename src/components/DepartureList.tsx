@@ -6,10 +6,8 @@ import { departureId } from "@/lib/trip";
 interface DepartureListProps {
   departures: Departure[];
   isLoading: boolean;
-  toLabel: string;
   now: Date;
   chosenId?: string | null;
-  catchId?: string | null;
   onSelect?: (departure: Departure) => void;
   /** Sailings left out between two rows, shown as a single "⋯" row. */
   gap?: { afterIndex: number; skipped: number } | null;
@@ -17,41 +15,37 @@ interface DepartureListProps {
 
 function LoadingRows(): JSX.Element {
   return (
-    <div className="upcoming-skeleton" aria-hidden="true">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="sk-row">
-          <span className="sk-bar tall" />
+    <div className="rows" aria-hidden="true">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="row skeleton">
           <span className="sk-bar" />
-          <span className="sk-bar" style={{ width: 60 }} />
         </div>
       ))}
     </div>
   );
 }
 
-function RowStatus({
+/** Tags only for what is out of the ordinary; a plain row needs none. */
+function RowTags({
   departure,
-  toLabel,
   isChosen,
-  isCatch,
 }: {
   departure: Departure;
-  toLabel: string;
   isChosen: boolean;
-  isCatch: boolean;
 }): JSX.Element {
   if (departure.cancelled) {
-    return <span className="badge err">Innstilt</span>;
+    return <span className="tag err">Innstilt</span>;
   }
   const isDelayed = departure.delayMinutes >= DELAY_THRESHOLD_MINUTES;
-  if (!isChosen && !isCatch && !isDelayed) {
-    return <>Til {departure.destination || toLabel}</>;
-  }
   return (
     <>
-      {isChosen && <span className="badge accent">Valgt</span>}
-      {isCatch && <span className="badge ok">Du rekker</span>}
-      {isDelayed && <span className="badge warn">+{departure.delayMinutes} min</span>}
+      {isChosen && <span className="tag accent">Valgt</span>}
+      {isDelayed && <span className="tag warn">+{departure.delayMinutes} min</span>}
+      {!departure.realtime && (
+        <span className="tag plain" title="Rutetid, ikke sanntidssporet">
+          rutetid
+        </span>
+      )}
     </>
   );
 }
@@ -59,10 +53,8 @@ function RowStatus({
 export function DepartureList({
   departures,
   isLoading,
-  toLabel,
   now,
   chosenId = null,
-  catchId = null,
   onSelect,
   gap = null,
 }: DepartureListProps): JSX.Element {
@@ -71,48 +63,36 @@ export function DepartureList({
   }
 
   if (departures.length === 0) {
-    return <p className="upcoming-empty">Ingen flere avganger i horisonten.</p>;
+    return <p className="rows-empty">Ingen flere avganger i horisonten.</p>;
   }
 
   return (
-    <ol className="upcoming-list">
+    <ol className="rows">
       {departures.map((d, index) => {
-        const mins = minutesUntilDeparture(d.departureTimeIso, now);
         const id = departureId(d);
         const isChosen = id === chosenId;
-        const isCatch = id === catchId;
         const className = [
-          "upcoming-row",
+          "row",
           d.cancelled ? "cancelled" : "",
-          isChosen || isCatch ? "marked" : "",
+          isChosen ? "chosen" : "",
         ]
           .filter(Boolean)
           .join(" ");
         const content = (
           <>
-            <span className="u-time tabular">{d.displayTime}</span>
-            <span className="u-to">
-              <RowStatus
-                departure={d}
-                toLabel={toLabel}
-                isChosen={isChosen}
-                isCatch={isCatch}
-              />
+            <span className="row-time tabular">{d.displayTime}</span>
+            <span className="row-tags">
+              <RowTags departure={d} isChosen={isChosen} />
             </span>
-            <span className="u-in tabular">
-              {!d.realtime && !d.cancelled && (
-                <span className="u-planned" title="Rutetid, ikke sanntidssporet">
-                  rutetid
-                </span>
-              )}
-              om {formatRelativeLabel(mins)}
+            <span className="row-in tabular">
+              {d.cancelled ? "" : formatRelativeLabel(minutesUntilDeparture(d.departureTimeIso, now))}
             </span>
           </>
         );
 
         const gapRow =
           gap && index === gap.afterIndex + 1 ? (
-            <li key="gap" className="upcoming-gap" aria-label={`${gap.skipped} avganger utelatt`}>
+            <li key="gap" className="row-gap" aria-label={`${gap.skipped} avganger utelatt`}>
               ⋯ {gap.skipped} {gap.skipped === 1 ? "avgang" : "avganger"}
             </li>
           ) : null;

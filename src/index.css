@@ -2,30 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-/* === Ferjetider — E39 (Midnight palette) === */
+/* === Ferjetider — dark, in the style of the Tesla UI === */
 
 :root {
-  --bg: #0a1220;
-  --surface: #121c2e;
-  --surface-2: #1a2539;
-  --ink: #eaeef5;
-  --ink-2: #aeb9c9;
-  --ink-3: #7f8da0;
-  --sea: #030912;
-  --sky: #1a2f4a;
-  --accent: #5ba8e6;
-  --accent-strong: #86c2f0;
-  --line: #1f2b40;
-  --ok: #6cc28e;
-  --warn: #e8b757;
-  --err: #e07a66;
-  --live: #5ba8e6;
-  --hero-ink: #ffffff;
+  color-scheme: dark;
+  --bg: #0f1013;
+  --card: #1c1d21;
+  --raised: #2a2c31;
+  --segment: #232428;
+  --segment-active: #393c41;
+  --ink: #f4f4f4;
+  --ink-2: #a2a3a5;
+  --ink-3: #8e8e93;
+  --line: #2a2c31;
+  /* Tesla blue; the lighter tint keeps small text readable on dark grey. */
+  --blue: #3e6ae1;
+  --blue-text: #7b9bf0;
+  --ok: #4cd964;
+  --warn: #f5a623;
+  --err: #ff5a4f;
   /* Horizontal gutter, widened by the notch/home-indicator insets when the
      app runs standalone with viewport-fit=cover. */
-  --gutter: max(40px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
-  --display-font: "Space Grotesk", system-ui, sans-serif;
-  --ui-font: "Inter", system-ui, sans-serif;
+  --gutter: max(28px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
 }
 
 * {
@@ -42,696 +42,471 @@ html,
 body {
   background: var(--bg);
   color: var(--ink);
-  font-family: var(--ui-font);
+  font-family: var(--font);
+  letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
-  font-feature-settings: "ss01";
   margin: 0;
 }
 
+button {
+  font: inherit;
+  color: inherit;
+}
+
 :focus-visible {
-  outline: 2px solid var(--accent-strong);
+  outline: 2px solid var(--blue-text);
   outline-offset: 2px;
 }
 
 .tabular {
   font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum";
 }
-.muted {
-  color: var(--ink-3);
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ============================================================
-   HERO
+   TOP BAR
 ============================================================ */
-.hero {
-  position: relative;
-  width: 100%;
-  height: 320px;
-  overflow: hidden;
-  background: var(--sea);
-  color: var(--hero-ink);
-}
-
-.sea-scene {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-/* Scene animation runs on the compositor; see SeaScene. */
-.sea-wave {
-  animation: sea-wave linear infinite;
-}
-@keyframes sea-wave {
-  to {
-    transform: translateX(var(--wavelength));
-  }
-}
-.sea-ferry {
-  /* Parked mid-fjord when motion is reduced. */
-  transform: translate(368px, 162px);
-  animation: sea-ferry 70s linear infinite;
-}
-@keyframes sea-ferry {
-  from {
-    transform: translate(-80px, 162px);
-  }
-  to {
-    transform: translate(1200px, 162px);
-  }
-}
-.sea-ferry-bob {
-  animation: sea-bob 2.6s ease-in-out infinite alternate;
-}
-@keyframes sea-bob {
-  from {
-    transform: translateY(-1.2px);
-  }
-  to {
-    transform: translateY(1.2px);
-  }
-}
-
-.hero-overlay {
-  position: relative;
-  z-index: 2;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.15) 0%,
-    rgba(0, 0, 0, 0) 40%,
-    rgba(0, 0, 0, 0.35) 100%
-  );
-}
-
-.hero-inner {
-  max-width: 1280px;
-  width: 100%;
-  margin: 0 auto;
-  padding: calc(28px + env(safe-area-inset-top, 0px)) var(--gutter) 40px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
 .topbar {
+  max-width: 1400px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.85);
+  gap: 20px;
+  padding: calc(18px + env(safe-area-inset-top, 0px)) var(--gutter) 14px;
 }
 .brand {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--display-font);
-  font-weight: 600;
-  font-size: 22px;
-  letter-spacing: 0.005em;
-  color: #fff;
 }
-.topbar-meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 20px;
+/* Brand mark: the ferry crosses, turns at the quay, and crosses back. */
+.ferry-water {
+  stroke: var(--line);
+  stroke-width: 3;
 }
-.clock {
-  font-size: 14px;
-  color: #fff;
-  padding: 4px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(10px);
+.ferry-mark-sail {
+  transform: translateX(114px);
+  animation: ferry-sail 16s ease-in-out infinite;
+}
+.ferry-mark-turn {
+  animation: ferry-turn 16s step-end infinite;
+}
+.ferry-mark-bob,
+.crossing-ferry .ferry-mark-bob {
+  animation: ferry-bob 2.4s ease-in-out infinite alternate;
+}
+@keyframes ferry-sail {
+  0%,
+  6% {
+    transform: translateX(45px);
+  }
+  44%,
+  56% {
+    transform: translateX(183px);
+  }
+  94%,
+  100% {
+    transform: translateX(45px);
+  }
+}
+@keyframes ferry-turn {
+  0% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(-1);
+  }
+}
+@keyframes ferry-bob {
+  from {
+    transform: translateY(-2px) rotate(-0.6deg);
+  }
+  to {
+    transform: translateY(2px) rotate(0.6deg);
+  }
 }
 
-.hero-title {
-  font-family: var(--display-font);
+.brand-name {
+  font-size: 20px;
   font-weight: 500;
-  font-size: clamp(26px, 2.8vw, 40px);
-  line-height: 1.05;
-  letter-spacing: -0.015em;
-  max-width: 900px;
-  text-wrap: pretty;
-  text-shadow: 0 2px 30px rgba(0, 0, 0, 0.25);
-  margin: 0;
 }
-.hero-title em {
-  font-style: italic;
-  position: relative;
-}
-.hero-title em::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0.06em;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.35);
-}
-
-/* ============================================================
-   DIRECTION BAR
-============================================================ */
-.direction-bar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-.direction-inner {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 14px var(--gutter);
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 28px;
-}
-.dir-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--ink-3);
-}
-.dir-switch {
+.segment {
   display: inline-flex;
-  background: var(--surface-2);
-  border-radius: 3px;
+  background: var(--segment);
+  border-radius: 12px;
   padding: 4px;
-  justify-self: start;
+  margin: 0 auto;
 }
-.dir-switch button {
+.segment button {
   background: transparent;
   border: 0;
-  padding: 9px 18px;
-  font: inherit;
-  font-size: 14px;
+  border-radius: 9px;
+  /* Big enough to hit on a car touchscreen. */
+  min-height: 52px;
+  padding: 0 30px;
+  font-size: 18px;
+  color: var(--ink-3);
   cursor: pointer;
-  color: var(--ink-2);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border-radius: 2px;
-  letter-spacing: 0.01em;
-  transition: all 140ms;
+  transition: background 140ms, color 140ms;
 }
-.dir-switch button:hover {
+.segment button.active {
+  background: var(--segment-active);
   color: var(--ink);
 }
-.dir-switch button.active {
-  background: var(--ink);
-  color: var(--bg);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-}
-.dir-arrow {
-  font-size: 13px;
-  opacity: 0.7;
-}
-
-.dir-meta {
-  justify-self: end;
-}
-.status-line {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
+.clock {
+  font-size: 24px;
+  font-weight: 500;
   color: var(--ink-2);
-}
-
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  display: inline-block;
-  background: var(--ink-3);
-}
-.dot.ok {
-  background: var(--ok);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ok) 18%, transparent);
-}
-.dot.warn {
-  background: var(--warn);
-}
-.dot.err {
-  background: var(--err);
 }
 
 /* ============================================================
-   MAIN / CARDS
+   BOARD / CARDS
 ============================================================ */
 .main {
-  max-width: 1280px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 40px var(--gutter) calc(80px + env(safe-area-inset-bottom, 0px));
+  padding: 4px var(--gutter) calc(32px + env(safe-area-inset-bottom, 0px));
 }
-.cards {
+.board {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
 }
 
-.samband-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 3px;
-  overflow: hidden;
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 20px 20px 12px;
   display: flex;
   flex-direction: column;
-}
-
-.samband-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 24px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-2);
-}
-.samband-crumbs {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
   min-width: 0;
 }
-/* The crossing is what you came for; the samband is context. */
-.samband-route {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-family: var(--display-font);
-  font-weight: 600;
-  font-size: 19px;
-  color: var(--ink);
-  letter-spacing: 0.005em;
+
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* As tall as a pill button, so both cards line up with or without one. */
+  min-height: 44px;
+  padding: 0 16px;
+}
+.card-route {
+  min-width: 0;
+  margin: 0 auto 0 0;
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--ink-2);
 }
 .route-arrow {
-  color: var(--ink-3);
-  font-weight: 400;
-}
-.samband-name {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--ink-3);
+  margin: 0 2px;
 }
 
-.live-dot {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  color: var(--live);
-}
-.live-dot span {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--live);
-  box-shadow: 0 0 0 0 color-mix(in oklab, var(--live) 60%, transparent);
-  animation: pulse 1.8s infinite;
-}
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--warn);
-}
-.status-pill.err {
-  color: var(--err);
-}
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 color-mix(in oklab, var(--live) 55%, transparent);
-  }
-  70% {
-    box-shadow: 0 0 0 7px color-mix(in oklab, var(--live) 0%, transparent);
-  }
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in oklab, var(--live) 0%, transparent);
-  }
-}
-
-/* Next block */
-.next-block {
-  padding: 30px 32px 28px;
-  position: relative;
-}
-.next-block.empty {
-  color: var(--ink-3);
-  padding: 48px 32px;
-  text-align: center;
-}
-
-.next-label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--ink-3);
-  margin-bottom: 8px;
-}
-
-/* Whether the time is tracked or just the timetable. */
-.rt-flag {
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  color: var(--ink-3);
-  border: 1px solid var(--line);
-  border-radius: 2px;
-  padding: 2px 7px;
-}
-.rt-flag.live {
-  color: var(--live);
-  border-color: color-mix(in oklab, var(--live) 35%, transparent);
-}
-
-.next-clock {
-  font-family: var(--display-font);
-  font-weight: 500;
-  font-size: clamp(76px, 10vw, 128px);
-  line-height: 0.9;
-  letter-spacing: -0.025em;
-  color: var(--ink);
-  margin-bottom: 12px;
-}
-
-.next-countdown-row {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.countdown {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  color: var(--accent);
-}
-.cd-num {
-  font-family: var(--display-font);
-  font-weight: 500;
-  font-size: 56px;
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-.cd-unit {
-  font-size: 17px;
-  color: var(--accent);
-  letter-spacing: 0.02em;
-  margin-right: 6px;
-}
-.cd-secs {
-  font-size: 18px;
-  color: var(--ink-3);
-  margin-left: 2px;
-}
-
-.countdown-meta {
-  text-align: right;
-  font-size: 13px;
-  color: var(--ink-2);
-  line-height: 1.5;
-}
-
-.next-block.imminent .cd-num,
-.next-block.imminent .cd-unit {
-  color: var(--err);
-}
-.next-block.imminent .next-clock {
-  color: var(--err);
-}
-
-.progress-track {
-  margin-top: 24px;
-  height: 2px;
-  background: var(--line);
-  overflow: hidden;
-  border-radius: 1px;
-}
-.progress-fill {
-  height: 100%;
-  background: var(--accent);
-  transition: width 1s linear;
-}
-.next-block.imminent .progress-fill {
-  background: var(--err);
-}
-
-.next-block.catch {
-  box-shadow: inset 3px 0 0 var(--ok);
-}
-.delay {
-  color: var(--warn);
-}
-.cancelled-note {
-  margin: 14px 0 0;
+.data-status {
   font-size: 14px;
-  color: var(--err);
+  padding: 5px 10px;
+  border-radius: 8px;
 }
-.choose {
-  margin-top: 18px;
-  font: inherit;
-  font-size: 14px;
-  color: var(--ink-2);
-  background: none;
-  border: 1px solid var(--line);
-  border-radius: 2px;
-  padding: 10px 18px;
+.data-status.warn {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+}
+.data-status.err {
+  color: var(--err);
+  background: color-mix(in srgb, var(--err) 14%, transparent);
+}
+
+.pill-button {
+  background: var(--raised);
+  border: 0;
+  border-radius: 10px;
   min-height: 44px;
-  cursor: pointer;
-}
-.choose:hover {
-  border-color: var(--accent);
-  color: var(--accent-strong);
-}
-.choose.active {
-  border-color: var(--accent);
-  color: var(--accent-strong);
-  background: color-mix(in oklab, var(--accent) 12%, transparent);
-}
-
-.alerts {
-  list-style: none;
-  margin: 0;
-  padding: 12px 24px;
-  display: grid;
-  gap: 6px;
-  font-size: 14px;
-  line-height: 1.45;
-  color: var(--warn);
-  background: color-mix(in oklab, var(--warn) 9%, transparent);
-  border-bottom: 1px solid var(--line);
-}
-.alerts li::before {
-  content: "⚠ ";
-}
-
-.next-error {
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--ink-2);
-  max-width: 44ch;
-  margin: 0 auto 18px;
-  text-wrap: pretty;
-}
-.retry {
-  font: inherit;
-  font-size: 13px;
-  letter-spacing: 0.02em;
+  padding: 0 18px;
+  font-size: 16px;
   color: var(--ink);
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: 2px;
-  padding: 9px 20px;
   cursor: pointer;
-  transition:
-    border-color 140ms,
-    color 140ms;
 }
-.retry:hover:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--accent-strong);
-}
-.retry:disabled {
+.pill-button:disabled {
   opacity: 0.55;
   cursor: default;
 }
 
-/* Upcoming list */
-.upcoming {
-  border-top: 1px solid var(--line);
-  padding: 20px 24px 22px;
+.info-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--warn);
 }
-.upcoming-head {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--ink-3);
-  margin-bottom: 10px;
+.info-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  font-size: 13px;
+  font-weight: 600;
+  font-style: italic;
+  font-family: Georgia, serif;
 }
-.upcoming-list {
+.info-dialog {
+  width: min(560px, calc(100vw - 32px));
+  padding: 24px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1.5;
+}
+.info-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+.info-dialog ul {
   list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
   display: grid;
-  gap: 2px;
+  gap: 16px;
+}
+.info-dialog strong {
+  font-weight: 500;
+  color: var(--warn);
+}
+.info-dialog p {
+  margin: 6px 0 0;
+}
+.info-dialog form {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* The one number you came for. */
+.hero {
+  padding: 4px 16px 16px;
+}
+.hero-figure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 14px;
+}
+.hero-num {
+  font-size: clamp(64px, 14vh, 118px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.hero-num .hero-unit {
+  margin: 0 0.15em 0 0.05em;
+}
+.hero-unit {
+  font-size: clamp(22px, 4vh, 30px);
+  color: var(--ink-2);
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.hero-secs {
+  font-size: clamp(18px, 3vh, 24px);
+  color: var(--ink-3);
+}
+.hero-word {
+  font-size: clamp(44px, 9vh, 72px);
+  font-weight: 500;
+  line-height: 1.1;
+}
+.hero-sub {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 18px;
+  color: var(--ink-2);
+}
+.strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+.warn-text {
+  color: var(--warn);
+}
+.hero.imminent .hero-num,
+.hero.imminent .hero-unit {
+  color: var(--err);
+}
+.hero.catch .hero-num {
+  color: var(--blue-text);
+}
+.hero.tight .hero-num,
+.hero.tight .hero-unit {
+  color: var(--warn);
+}
+
+/* Where the ferry is on its crossing, while you are on it. */
+.crossing {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+.crossing-track {
+  position: relative;
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--raised);
+}
+.crossing-done {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--blue);
+  transition: width 1s linear;
+}
+.crossing-ferry {
+  position: absolute;
+  bottom: 1px;
+  transform: translateX(-50%);
+  transition: left 1s linear;
+  overflow: visible;
+}
+
+.load-error {
+  padding: 16px;
+  font-size: 16px;
+  color: var(--ink-2);
+}
+.load-error p {
+  margin: 0 0 14px;
+  max-width: 44ch;
+}
+
+/* ============================================================
+   ROWS
+============================================================ */
+.rows {
+  list-style: none;
   margin: 0;
   padding: 0;
-}
-.upcoming-row {
   display: grid;
-  grid-template-columns: 80px 1fr auto;
+}
+.row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 16px;
-  padding: 10px 0;
-  font-size: 14px;
-  border-bottom: 1px dotted var(--line);
+  gap: 14px;
+  min-height: 60px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font-size: 22px;
 }
-.upcoming-list li:last-child .upcoming-row {
-  border-bottom: 0;
-}
-button.upcoming-row {
+button.row {
   width: 100%;
-  font: inherit;
-  color: inherit;
   text-align: left;
   background: none;
-  border-top: 0;
-  border-left: 0;
-  border-right: 0;
+  border: 0;
   cursor: pointer;
-  /* Big enough to hit on a car touchscreen. */
-  min-height: 52px;
 }
-button.upcoming-row:hover {
-  background: var(--surface-2);
+button.row:active {
+  background: var(--raised);
 }
-.upcoming-row.marked {
-  background: color-mix(in oklab, var(--ok) 10%, transparent);
-  box-shadow: inset 3px 0 0 var(--ok);
-  padding-left: 10px;
+.row.chosen {
+  background: var(--raised);
 }
-.upcoming-row.marked[aria-pressed="true"] {
-  background: color-mix(in oklab, var(--accent) 12%, transparent);
-  box-shadow: inset 3px 0 0 var(--accent);
+.row-time {
+  font-weight: 500;
 }
-.upcoming-row.cancelled .u-time {
+.row.cancelled .row-time {
   color: var(--ink-3);
   text-decoration: line-through;
 }
+.row-tags {
+  display: inline-flex;
+  gap: 8px;
+  min-width: 0;
+}
+.row-in {
+  font-size: 20px;
+  color: var(--ink-3);
+}
+.row-gap {
+  padding: 4px 16px;
+  font-size: 15px;
+  color: var(--ink-3);
+}
+.rows-empty {
+  margin: 0;
+  padding: 12px 16px;
+  font-size: 16px;
+  color: var(--ink-3);
+}
 
-.badge {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 3px 7px;
-  border-radius: 2px;
-  margin-right: 6px;
-  vertical-align: middle;
+.fact {
+  grid-template-columns: 1fr auto;
 }
-.next-label .badge {
-  margin-left: 10px;
-}
-.badge.ok {
-  color: var(--ok);
-  background: color-mix(in oklab, var(--ok) 16%, transparent);
-}
-.badge.accent {
-  color: var(--accent-strong);
-  background: color-mix(in oklab, var(--accent) 18%, transparent);
-}
-.badge.warn {
-  color: var(--warn);
-  background: color-mix(in oklab, var(--warn) 16%, transparent);
-}
-.badge.err {
-  color: var(--err);
-  background: color-mix(in oklab, var(--err) 16%, transparent);
-}
-.u-time {
-  font-family: var(--display-font);
-  font-weight: 500;
-  font-size: 22px;
-  color: var(--ink);
-  line-height: 1;
-}
-.u-to {
+.fact-label {
   color: var(--ink-2);
 }
-.u-in {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 10px;
-  color: var(--ink-3);
-  font-size: 13px;
-  letter-spacing: 0.02em;
+.fact-value {
+  font-weight: 500;
 }
-.u-planned {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--ink-3);
-  border: 1px solid var(--line);
-  border-radius: 2px;
-  padding: 2px 6px;
+.fact-value.ok {
+  color: var(--ok);
 }
-.upcoming-gap {
-  padding: 6px 0;
-  font-size: 13px;
-  color: var(--ink-3);
-  letter-spacing: 0.04em;
-  border-bottom: 1px dotted var(--line);
+.fact-value.warn {
+  color: var(--warn);
 }
-.upcoming-empty {
-  font-size: 13px;
+.fact-value.muted {
   color: var(--ink-3);
-  padding: 8px 0 4px;
 }
 
-.upcoming-skeleton {
-  display: grid;
-  gap: 2px;
+.tag {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+  letter-spacing: 0;
 }
-.upcoming-skeleton .sk-row {
-  display: grid;
-  grid-template-columns: 80px 1fr auto;
-  gap: 16px;
-  padding: 10px 0;
-  border-bottom: 1px dotted var(--line);
+.tag.accent {
+  color: var(--blue-text);
+  background: color-mix(in srgb, var(--blue) 18%, transparent);
 }
-.upcoming-skeleton .sk-row:last-child {
-  border-bottom: 0;
+.tag.warn {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+}
+.tag.err {
+  color: var(--err);
+  background: color-mix(in srgb, var(--err) 14%, transparent);
+}
+.tag.plain {
+  color: var(--ink-3);
+  background: var(--raised);
+  font-weight: 400;
+}
+
+.row.skeleton {
+  grid-template-columns: 1fr;
 }
 .sk-bar {
-  height: 14px;
-  background: var(--surface-2);
-  border-radius: 2px;
-  opacity: 0.8;
-  animation: sk-pulse 1.6s ease-in-out infinite;
-}
-.sk-bar.tall {
   height: 18px;
+  width: 60%;
+  background: var(--raised);
+  border-radius: 6px;
+  animation: sk-pulse 1.6s ease-in-out infinite;
 }
 @keyframes sk-pulse {
   0%,
@@ -739,213 +514,93 @@ button.upcoming-row:hover {
     opacity: 0.4;
   }
   50% {
-    opacity: 0.8;
+    opacity: 0.9;
   }
 }
 
 /* ============================================================
-   TRIP PLAN
+   FOOTER (below the fold in the car)
 ============================================================ */
-.trip-plan {
-  margin-bottom: 24px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 3px;
-  padding: 16px 24px 18px;
-}
-.trip-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-.trip-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--ink-3);
-}
-.trip-hint {
-  font-size: 12px;
-  color: var(--ink-3);
-}
-.trip-steps {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  gap: 4px;
-}
-.trip-step {
-  display: grid;
-  gap: 2px;
-  padding: 8px 12px;
-  border-left: 1px solid var(--line);
-}
-.trip-step:first-child {
-  border-left: 0;
-  padding-left: 0;
-}
-.ts-time {
-  font-family: var(--display-font);
-  font-weight: 500;
-  font-size: 30px;
-  line-height: 1.05;
-  color: var(--ink);
-}
-.ts-place {
-  font-size: 15px;
-  color: var(--ink);
-}
-.ts-note {
-  font-size: 12px;
-  color: var(--ink-3);
-}
-.trip-step.catch {
-  background: color-mix(in oklab, var(--ok) 12%, transparent);
-  border-left: 3px solid var(--ok);
-  border-radius: 2px;
-}
-.trip-step.catch .ts-time,
-.trip-step.catch .ts-note {
-  color: var(--ok);
-}
-.trip-step.catch.tight {
-  background: color-mix(in oklab, var(--warn) 12%, transparent);
-  border-left-color: var(--warn);
-}
-.trip-step.catch.tight .ts-time,
-.trip-step.catch.tight .ts-note {
-  color: var(--warn);
-}
-.trip-step.missing .ts-place {
-  color: var(--warn);
-}
-
-/* ============================================================
-   LEGEND / FOOTER
-============================================================ */
-.legend {
-  margin-top: 48px;
-  padding: 28px 0 0;
-  border-top: 1px solid var(--line);
-}
-.legend-title {
-  font-family: var(--display-font);
-  font-weight: 600;
-  font-size: 17px;
-  margin-bottom: 8px;
-  color: var(--ink);
-}
-.legend p em {
-  font-style: normal;
-  color: var(--ink);
-}
-.legend p {
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--ink-2);
-  max-width: 56ch;
-  text-wrap: pretty;
-  margin: 0;
-}
 .foot {
-  margin-top: 48px;
-  padding-top: 20px;
-  border-top: 1px solid var(--line);
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
+  margin-top: 40px;
+  padding: 0 16px;
+  font-size: 14px;
+  line-height: 1.55;
   color: var(--ink-3);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+}
+.foot p {
+  margin: 0 0 6px;
+  max-width: 70ch;
 }
 
 /* ============================================================
-   RESPONSIVE
+   PHONE
 ============================================================ */
-@media (max-width: 880px) {
-  .hero {
-    height: 200px;
-  }
-  .cards {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 760px) {
   :root {
-    --gutter: max(20px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+    --gutter: max(16px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
   }
-  .main {
-    padding: 28px var(--gutter) calc(60px + env(safe-area-inset-bottom, 0px));
-  }
-  .hero-inner {
-    padding: calc(20px + env(safe-area-inset-top, 0px)) var(--gutter) 28px;
-  }
-  .direction-inner {
-    grid-template-columns: 1fr;
+  .topbar {
+    flex-wrap: wrap;
     gap: 12px;
-    padding: 14px var(--gutter);
+    padding-top: calc(14px + env(safe-area-inset-top, 0px));
   }
-  .dir-meta {
-    justify-self: start;
+  .clock {
+    margin-left: auto;
+    font-size: 20px;
   }
-  .next-clock {
-    font-size: clamp(64px, 18vw, 96px);
+  .segment {
+    order: 3;
+    width: 100%;
   }
-  .cd-num {
-    font-size: 42px;
+  .segment button {
+    flex: 1;
+    padding: 0 12px;
+    min-height: 46px;
+    font-size: 16px;
   }
-  .trip-plan {
-    padding: 14px 18px;
+  .board {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
   }
-  .trip-steps {
-    grid-auto-flow: row;
-    grid-template-columns: 1fr 1fr;
+  .card {
+    padding: 16px 8px 8px;
   }
-  .trip-step,
-  .trip-step:first-child {
-    border-left: 0;
-    padding: 8px 10px;
+  .card-head {
+    gap: 8px;
   }
-  .ts-time {
-    font-size: 24px;
+  /* Just the (i) on a phone; the label stays for screen readers. */
+  .info-pill {
+    padding: 0 12px;
   }
-}
-
-/* Landscape screens that are short on height (the Tesla browser among them):
-   the departures matter more than the scenery, so the hero shrinks to a band. */
-@media (min-width: 881px) and (max-height: 1000px) {
-  .hero {
-    height: 150px;
+  .info-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
   }
-  .hero-inner {
-    padding-top: calc(18px + env(safe-area-inset-top, 0px));
-    padding-bottom: 20px;
+  .hero-num {
+    font-size: 72px;
   }
-  .hero-title {
-    font-size: 26px;
+  .row {
+    min-height: 54px;
+    font-size: 20px;
   }
-  .hero-title br {
-    display: none;
-  }
-  .main {
-    padding-top: 24px;
+  .row-in {
+    font-size: 17px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sea-wave,
-  .sea-ferry,
-  .sea-ferry-bob {
-    animation: none;
-  }
-  .live-dot span {
-    animation: none;
-  }
+  .ferry-mark-sail,
+  .ferry-mark-turn,
+  .ferry-mark-bob,
+  .crossing-done,
+  .crossing-ferry,
   .sk-bar {
     animation: none;
+    transition: none;
   }
 }
