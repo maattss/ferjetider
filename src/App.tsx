@@ -7,7 +7,7 @@ import {
   type TravelDirectionKey,
   isTravelDirectionKey,
 } from "@/config/routes";
-import { SeaScene } from "@/components/SeaScene";
+import { FerryMark } from "@/components/Ferry";
 import { TripView } from "@/components/TripView";
 import { useNow } from "@/hooks/useNow";
 import { readStorage, writeStorage } from "@/lib/storage";
@@ -246,69 +246,32 @@ export default function App(): JSX.Element {
   return (
     <>
       <div className="page">
-        <header className="hero">
-          <SeaScene />
-          <div className="hero-overlay">
-            <div className="hero-inner">
-              <div className="topbar">
-                <div className="brand">
-                  <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true">
-                    <path d="M 2 14 L 4 17 L 18 17 L 20 14 Z" fill="currentColor" />
-                    <rect x="5" y="9" width="12" height="5" fill="currentColor" />
-                    <rect
-                      x="9"
-                      y="5"
-                      width="4"
-                      height="4"
-                      fill="currentColor"
-                      opacity="0.6"
-                    />
-                  </svg>
-                  <span>Ferjetider</span>
-                </div>
-                <div className="topbar-meta">
-                  <span className="clock tabular">{formatOsloTime(now)}</span>
-                </div>
-              </div>
-              <h1 className="hero-title">
-                Ferjeavganger på <em>E39</em>{" "}
-                <br />
-                mellom Stavanger &amp; Bergen
-              </h1>
-            </div>
+        <header className="topbar">
+          <div className="brand">
+            <FerryMark />
+            <span className="brand-name">Ferjetider</span>
           </div>
+          <div className="segment" role="group" aria-label="Reiseretning">
+            {TRAVEL_DIRECTIONS.map((td) => {
+              const isActive = travelDirectionKey === td.key;
+              return (
+                <button
+                  key={td.key}
+                  type="button"
+                  aria-pressed={isActive}
+                  className={isActive ? "active" : ""}
+                  onClick={() => setTravelDirectionKey(td.key)}
+                >
+                  {td.label}
+                </button>
+              );
+            })}
+          </div>
+          <span className="clock tabular">{formatOsloTime(now)}</span>
+          <h1 className="sr-only">
+            Ferjeavganger på E39 mellom Stavanger og Bergen, {travelDirection.label.toLowerCase()}
+          </h1>
         </header>
-
-        <div className="direction-bar">
-          <div className="direction-inner">
-            <div className="dir-label">Jeg skal</div>
-            <div className="dir-switch" role="group" aria-label="Reiseretning">
-              {TRAVEL_DIRECTIONS.map((td) => {
-                const isActive = travelDirectionKey === td.key;
-                const arrow = td.key === "mot_bergen" ? "↑" : "↓";
-                return (
-                  <button
-                    key={td.key}
-                    type="button"
-                    aria-pressed={isActive}
-                    className={isActive ? "active" : ""}
-                    onClick={() => setTravelDirectionKey(td.key)}
-                  >
-                    <span className="dir-arrow" aria-hidden="true">
-                      {arrow}
-                    </span>
-                    {td.label}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="dir-meta">
-              <span className="status-line">
-                <span className="dot ok"></span>Sanntidsdata fra Entur
-              </span>
-            </div>
-          </div>
-        </div>
 
         <main className="main">
           <TripView
@@ -318,25 +281,15 @@ export default function App(): JSX.Element {
             onUpdated={handlePanelUpdated}
           />
 
-          <section className="legend">
-            <div>
-              <div className="legend-title">Om ferjetider</div>
-              <p>
-                Overfart ca. 28 min (Mortavika–Arsvågen) og 45 min
-                (Sandvikvåg–Halhjem), med ca. {DRIVE_BETWEEN_SAMBAND_MINUTES} min
-                kjøring imellom. <em>Sanntid</em> spores av Entur nå,{" "}
-                <em>rutetid</em> er oppsatt rute.
-              </p>
-            </div>
-          </section>
-
           <footer className="foot">
-            <div>Ferjetider · E39 Boknafjorden &amp; Langenuen</div>
-            <div className="tabular">
-              {lastUpdated
-                ? `oppdatert ${formatOsloTime(lastUpdated)}`
-                : "henter data…"}
-            </div>
+            <p>
+              Sanntid fra Entur. Overfart ca. 28 min (Mortavika–Arsvågen) og 45 min
+              (Sandvikvåg–Halhjem), med ca. {DRIVE_BETWEEN_SAMBAND_MINUTES} min kjøring
+              imellom. Trykk på en avgang for å planlegge ut fra den.
+            </p>
+            <p className="tabular">
+              {lastUpdated ? `Oppdatert ${formatOsloTime(lastUpdated)}` : "Henter data…"}
+            </p>
           </footer>
         </main>
       </div>
