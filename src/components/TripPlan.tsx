@@ -1,4 +1,4 @@
-import { Alerts, CardHead, LoadError } from "@/components/CardParts";
+import { CardHead, LoadError } from "@/components/CardParts";
 import { DepartureList } from "@/components/DepartureList";
 import type { TravelDirectionRoute } from "@/config/routes";
 import type { UseDeparturesResult } from "@/hooks/useDepartures";
@@ -39,12 +39,7 @@ export function TripPlan({
   connection,
   now,
 }: TripPlanProps): JSX.Element {
-  const head = (
-    <>
-      <CardHead route={route} query={query} />
-      <Alerts alerts={query.data?.alerts ?? []} />
-    </>
-  );
+  const head = <CardHead route={route} query={query} />;
 
   // No first ferry to plan from yet: show the plain timetable instead.
   if (!connection) {

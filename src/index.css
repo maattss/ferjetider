@@ -197,17 +197,19 @@ button {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 40px;
+  /* As tall as a pill button, so both cards line up with or without one. */
+  min-height: 44px;
   padding: 0 16px;
 }
 .card-route {
+  min-width: 0;
   margin: 0 auto 0 0;
   font-size: 18px;
   font-weight: 400;
   color: var(--ink-2);
 }
 .route-arrow {
-  margin: 0 8px;
+  margin: 0 2px;
 }
 
 .data-status {
@@ -239,66 +241,54 @@ button {
   cursor: default;
 }
 
-.alerts {
-  list-style: none;
-  margin: 8px 0 0;
-  padding: 0;
-  display: grid;
-  /* minmax(0) lets a long one-line message ellipsize instead of widening the card. */
-  grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
-  font-size: 15px;
-  line-height: 1.45;
+.info-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: var(--warn);
 }
-.alerts li {
-  padding: 12px 16px;
-  background: color-mix(in srgb, var(--warn) 10%, transparent);
-  border-radius: 12px;
+.info-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  font-size: 13px;
+  font-weight: 600;
+  font-style: italic;
+  font-family: Georgia, serif;
 }
-.alert-title::before {
-  content: "⚠ ";
-}
-.alert summary {
-  display: flex;
-  gap: 10px;
-  min-width: 0;
-  cursor: pointer;
-  list-style: none;
-}
-.alert summary::-webkit-details-marker {
-  display: none;
-}
-.alert summary::after {
-  content: "›";
-  margin-left: auto;
-  padding-left: 6px;
-  transition: transform 140ms;
-}
-.alert[open] summary::after {
-  transform: rotate(90deg);
-}
-.alert-title {
-  flex: none;
-  font-weight: 500;
-}
-.alert-text {
-  flex: 1;
-  min-width: 0;
-  color: var(--ink-2);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-/* Opened: the full message, wrapped under the headline. */
-.alert[open] summary {
-  flex-wrap: wrap;
-}
-.alert[open] .alert-text {
-  flex-basis: 100%;
-  order: 3;
-  white-space: normal;
+.info-dialog {
+  width: min(560px, calc(100vw - 32px));
+  padding: 24px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--card);
   color: var(--ink);
+  font-size: 18px;
+  line-height: 1.5;
+}
+.info-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+.info-dialog ul {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+.info-dialog strong {
+  font-weight: 500;
+  color: var(--warn);
+}
+.info-dialog p {
+  margin: 6px 0 0;
+}
+.info-dialog form {
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* The one number you came for. */
@@ -575,6 +565,21 @@ button.row:active {
   }
   .card {
     padding: 16px 8px 8px;
+  }
+  .card-head {
+    gap: 8px;
+  }
+  /* Just the (i) on a phone; the label stays for screen readers. */
+  .info-pill {
+    padding: 0 12px;
+  }
+  .info-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
   }
   .hero-num {
     font-size: 72px;

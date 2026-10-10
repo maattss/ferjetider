@@ -1,4 +1,4 @@
-import { Alerts, CardHead, LoadError } from "@/components/CardParts";
+import { CardHead, LoadError } from "@/components/CardParts";
 import { CrossingTrack } from "@/components/Ferry";
 import { DepartureList } from "@/components/DepartureList";
 import type { TravelDirectionRoute } from "@/config/routes";
@@ -106,7 +106,6 @@ export function DeparturePanel({
           )
         }
       />
-      <Alerts alerts={data?.alerts ?? []} />
 
       {target && !targetSailed ? (
         <Countdown target={target} now={now} />
