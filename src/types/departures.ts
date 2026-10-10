@@ -15,14 +15,24 @@ export interface Departure {
   realtime: boolean;
 }
 
+export interface ServiceAlert {
+  /** Headline, often just "Trafikkmelding". */
+  summary: string;
+  /** What actually happened, when Entur says. */
+  description: string | null;
+}
+
 export interface DeparturesResponse {
   routeKey: RouteKey;
   directionKey: DirectionKey;
   updatedAt: string;
   isFallback: boolean;
   departures: Departure[];
-  /** Service alerts from Entur, e.g. weather cancellations. */
-  alerts: string[];
+  /**
+   * Service alerts from Entur, e.g. weather cancellations. Plain strings come
+   * from caches saved before descriptions were fetched.
+   */
+  alerts: Array<ServiceAlert | string>;
 }
 
 export interface DeparturesErrorPayload {

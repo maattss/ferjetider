@@ -14,6 +14,7 @@ import {
 import type {
   Departure,
   DeparturesResponse,
+  ServiceAlert,
 } from "../src/types/departures";
 
 const ENTUR_ENDPOINT = "https://api.entur.io/journey-planner/v3/graphql";
@@ -59,14 +60,21 @@ const ESTIMATED_CALLS_QUERY = `
             value
             language
           }
+          description {
+            value
+            language
+          }
         }
       }
     }
   }
 `;
 
+type TranslatedText = Array<{ value?: string | null; language?: string | null }> | null;
+
 interface SituationNode {
-  summary?: Array<{ value?: string | null; language?: string | null }> | null;
+  summary?: TranslatedText;
+  description?: TranslatedText;
 }
 
 interface PassingTimeNode {
@@ -242,11 +250,27 @@ function normalizeEstimatedCall(
   };
 }
 
-function situationText(situation: SituationNode): string | null {
-  const summaries = situation.summary ?? [];
-  const norwegian = summaries.find((s) => s.language && /^(no|nb|nob)$/i.test(s.language));
-  const text = (norwegian ?? summaries[0])?.value?.trim();
+function pickNorwegian(texts: TranslatedText | undefined): string | null {
+  const options = texts ?? [];
+  const norwegian = options.find((t) => t.language && /^(no|nb|nob)$/i.test(t.language));
+  const text = (norwegian ?? options[0])?.value?.trim();
   return text || null;
+}
+
+/**
+ * The summary is often just "Trafikkmelding"; what actually happened is in
+ * the description, so carry both.
+ */
+function situationAlert(situation: SituationNode): ServiceAlert | null {
+  const summary = pickNorwegian(situation.summary);
+  const description = pickNorwegian(situation.description);
+  if (!summary && !description) {
+    return null;
+  }
+  return {
+    summary: summary ?? "Trafikkmelding",
+    description: description && description !== summary ? description : null,
+  };
 }
 
 /**
@@ -254,12 +278,15 @@ function situationText(situation: SituationNode): string | null {
  * deduplicated. Stop-wide alerts are left out: at these quays they are mostly
  * about the buses that also call there.
  */
-export function collectAlerts(calls: EstimatedCallNode[]): string[] {
-  const texts = calls
-    .flatMap((call) => call.situations ?? [])
-    .map(situationText)
-    .filter((text): text is string => Boolean(text));
-  return [...new Set(texts)];
+export function collectAlerts(calls: EstimatedCallNode[]): ServiceAlert[] {
+  const byText = new Map<string, ServiceAlert>();
+  for (const situation of calls.flatMap((call) => call.situations ?? [])) {
+    const alert = situationAlert(situation);
+    if (alert) {
+      byText.set(`${alert.summary}\n${alert.description ?? ""}`, alert);
+    }
+  }
+  return [...byText.values()];
 }
 
 export function buildDepartures(

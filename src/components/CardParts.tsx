@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { TravelDirectionRoute } from "@/config/routes";
 import type { UseDeparturesResult } from "@/hooks/useDepartures";
+import type { ServiceAlert } from "@/types/departures";
 
 /** Live data is the normal case, so only say something when it is not. */
 function DataStatus({ query }: { query: UseDeparturesResult }): JSX.Element | null {
@@ -38,15 +39,34 @@ export function CardHead({
   );
 }
 
-export function Alerts({ alerts }: { alerts: string[] }): JSX.Element | null {
+/** Collapsed to one line so it does not push the departures down; tap to read. */
+export function Alerts({
+  alerts,
+}: {
+  alerts: ReadonlyArray<ServiceAlert | string>;
+}): JSX.Element | null {
   if (alerts.length === 0) {
     return null;
   }
   return (
     <ul className="alerts" aria-label="Driftsmeldinger">
-      {alerts.map((alert) => (
-        <li key={alert}>{alert}</li>
-      ))}
+      {alerts.map((raw) => {
+        const alert = typeof raw === "string" ? { summary: raw, description: null } : raw;
+        return (
+          <li key={`${alert.summary}-${alert.description ?? ""}`}>
+            {alert.description ? (
+              <details className="alert">
+                <summary>
+                  <span className="alert-title">{alert.summary}</span>
+                  <span className="alert-text">{alert.description}</span>
+                </summary>
+              </details>
+            ) : (
+              <span className="alert-title">{alert.summary}</span>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }
