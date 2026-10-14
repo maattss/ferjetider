@@ -355,16 +355,20 @@ button {
 
 /* Where the ferry is on its crossing, while you are on it. */
 .crossing {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 18px;
+  /* Room above the track for the ferry, so it never sits on the quay names. */
+  padding-top: 26px;
+  margin-top: 14px;
   font-size: 14px;
   color: var(--ink-3);
 }
+.crossing-quays {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 8px;
+}
 .crossing-track {
   position: relative;
-  flex: 1;
   height: 3px;
   border-radius: 2px;
   background: var(--raised);
@@ -378,7 +382,6 @@ button {
 .crossing-ferry {
   position: absolute;
   bottom: 1px;
-  transform: translateX(-50%);
   transition: left 1s linear;
   overflow: visible;
 }
