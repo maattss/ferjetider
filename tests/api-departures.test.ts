@@ -83,6 +83,23 @@ describe("api departures", () => {
     expect(parse("500")).toBe(30);
   });
 
+  it("reads how far back to list, capped and defaulting to upcoming only", () => {
+    const parse = (back?: string) =>
+      parseRequest({
+        query: {
+          route: "halhjem_sandvikvag",
+          direction: "halhjem_to_sandvikvag",
+          ...(back === undefined ? {} : { back }),
+        },
+      } as unknown as VercelRequest)?.backMinutes;
+
+    expect(parse()).toBe(0);
+    expect(parse("180")).toBe(180);
+    expect(parse("9999")).toBe(240);
+    expect(parse("-5")).toBe(0);
+    expect(parse("abc")).toBe(0);
+  });
+
   it("rejects invalid route/direction", () => {
     const request = {
       query: {

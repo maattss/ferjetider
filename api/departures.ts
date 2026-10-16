@@ -22,15 +22,23 @@ const DEFAULT_LIMIT = 6;
 // Daytime sailings run every ~15 min and the trip plan looks up to ~5 hours
 // ahead for the second ferry, so the ceiling has to cover that.
 const MAX_LIMIT = 30;
+// Lets the first leg list sailings that already left, for a driver who opens
+// the page on the way. Past the drive to the second quay they no longer matter.
+const MAX_BACK_MINUTES = 240;
 const ENTUR_TIMEOUT_MS = 5_000;
 
 const ESTIMATED_CALLS_QUERY = `
-  query EstimatedCalls($stopPlaceId: String!, $numberOfDepartures: Int!) {
+  query EstimatedCalls(
+    $stopPlaceId: String!
+    $numberOfDepartures: Int!
+    $startTime: DateTime
+  ) {
     stopPlace(id: $stopPlaceId) {
       id
       name
       estimatedCalls(
         numberOfDepartures: $numberOfDepartures
+        startTime: $startTime
         includeCancelledTrips: true
         whiteListedModes: [water]
       ) {
@@ -115,6 +123,8 @@ interface ParsedRequest {
   routeKey: RouteKey;
   directionKey: DirectionKey;
   limit: number;
+  /** Minutes before now to start listing from; 0 for upcoming only. */
+  backMinutes: number;
   directionConfig: DirectionConfig;
 }
 
@@ -141,10 +151,19 @@ function parseLimit(rawLimit: string | null): number {
   return Math.max(1, Math.min(MAX_LIMIT, numericLimit));
 }
 
+function parseBackMinutes(rawBack: string | null): number {
+  const minutes = rawBack ? Number.parseInt(rawBack, 10) : 0;
+  if (Number.isNaN(minutes)) {
+    return 0;
+  }
+  return Math.max(0, Math.min(MAX_BACK_MINUTES, minutes));
+}
+
 export function parseRequest(req: VercelRequest): ParsedRequest | null {
   const routeValue = asSingleQueryValue(req.query.route);
   const directionValue = asSingleQueryValue(req.query.direction);
   const limitValue = asSingleQueryValue(req.query.limit);
+  const backValue = asSingleQueryValue(req.query.back);
 
   if (!routeValue || !directionValue) {
     return null;
@@ -163,6 +182,7 @@ export function parseRequest(req: VercelRequest): ParsedRequest | null {
     routeKey: routeValue,
     directionKey: directionValue,
     limit: parseLimit(limitValue),
+    backMinutes: parseBackMinutes(backValue),
     directionConfig,
   };
 }
@@ -325,6 +345,7 @@ function sendError(
 async function fetchEnturStopPlace(
   directionConfig: DirectionConfig,
   limit: number,
+  backMinutes: number,
 ): Promise<StopPlaceNode | null> {
   const clientName = process.env.ENTUR_CLIENT_NAME || "ferjetider-app";
   // Only ferries are requested, but keep headroom for sailings the destination
@@ -344,6 +365,11 @@ async function fetchEnturStopPlace(
         variables: {
           stopPlaceId: directionConfig.fromStopPlaceId,
           numberOfDepartures: departuresForFetch,
+          // Null lets Entur start from now, as before.
+          startTime:
+            backMinutes > 0
+              ? new Date(Date.now() - backMinutes * 60_000).toISOString()
+              : null,
         },
       }),
       // Without this a hanging upstream holds the function open until the
@@ -392,6 +418,7 @@ export default async function handler(
     const stopPlace = await fetchEnturStopPlace(
       parsedRequest.directionConfig,
       parsedRequest.limit,
+      parsedRequest.backMinutes,
     );
     const estimatedCalls = (stopPlace?.estimatedCalls ?? []).filter((call) =>
       matchesDestination(

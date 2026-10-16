@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { CardHead, LoadError } from "@/components/CardParts";
 import { CrossingTrack } from "@/components/Ferry";
 import { DepartureList } from "@/components/DepartureList";
@@ -11,11 +12,15 @@ import type { Departure } from "@/types/departures";
 const LIST_ROWS = 4;
 /** Rows kept above the gap when the chosen sailing is far down. */
 const LEAD_ROWS = 2;
+/** Earlier sailings revealed per tap, leaving the next one in view at first. */
+const EARLIER_STEP = LIST_ROWS - 1;
 
 interface DeparturePanelProps {
   route: TravelDirectionRoute;
   query: UseDeparturesResult;
   departures: Departure[];
+  /** Sailings that already left but can still carry the plan, oldest first. */
+  earlier: Departure[];
   now: Date;
   /** The ferry the plan is built on: the one picked, else the next one. */
   target: Departure | undefined;
@@ -72,6 +77,7 @@ export function DeparturePanel({
   route,
   query,
   departures,
+  earlier,
   now,
   target,
   chosenId,
@@ -79,6 +85,10 @@ export function DeparturePanel({
   onReset,
 }: DeparturePanelProps): JSX.Element {
   const { data, error, isLoading } = query;
+  // How many earlier sailings are paged in above the next one; 0 is the
+  // default view. Clamped since earlier ones age out while browsing.
+  const [earlierShown, setEarlierShown] = useState(0);
+  const shown = Math.min(earlierShown, earlier.length);
   const targetSailed =
     target !== undefined && new Date(target.departureTimeIso).getTime() < now.getTime();
 
@@ -87,10 +97,13 @@ export function DeparturePanel({
   const markedIndex = chosenId
     ? departures.findIndex((d) => departureId(d) === chosenId)
     : -1;
-  const isFarDown = markedIndex >= LIST_ROWS;
-  const rows = isFarDown
-    ? [...departures.slice(0, LEAD_ROWS), ...departures.slice(markedIndex, markedIndex + 2)]
-    : departures.slice(0, LIST_ROWS);
+  const isFarDown = shown === 0 && markedIndex >= LIST_ROWS;
+  const rows =
+    shown > 0
+      ? [...earlier.slice(earlier.length - shown), ...departures].slice(0, LIST_ROWS)
+      : isFarDown
+        ? [...departures.slice(0, LEAD_ROWS), ...departures.slice(markedIndex, markedIndex + 2)]
+        : departures.slice(0, LIST_ROWS);
   const gap = isFarDown ? { afterIndex: LEAD_ROWS - 1, skipped: markedIndex - LEAD_ROWS } : null;
 
   return (
@@ -135,6 +148,28 @@ export function DeparturePanel({
                 ? "Alle kjente avganger er innstilt"
                 : "Ingen planlagte avganger"}
           </div>
+        </div>
+      )}
+
+      {(earlier.length > 0 || shown > 0) && (
+        <div className="list-nav">
+          <button
+            type="button"
+            className="list-nav-button"
+            disabled={shown >= earlier.length}
+            onClick={() => setEarlierShown(Math.min(earlier.length, shown + EARLIER_STEP))}
+          >
+            ↑ Tidligere
+          </button>
+          {shown > 0 && (
+            <button
+              type="button"
+              className="list-nav-button"
+              onClick={() => setEarlierShown(0)}
+            >
+              Neste ferje ↓
+            </button>
+          )}
         </div>
       )}
 

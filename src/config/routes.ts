@@ -125,10 +125,10 @@ export interface TravelDirectionConfig {
 
 /**
  * Driving time between Arsvågen and Sandvikvåg (E39 via Aksdal and Stord),
- * roughly 90 minutes in practice. It sets which second ferry the trip plan
- * says you will make.
+ * about 1 hour 40 minutes in practice. It sets which second ferry the trip
+ * plan says you will make.
  */
-export const DRIVE_BETWEEN_SAMBAND_MINUTES = 90;
+export const DRIVE_BETWEEN_SAMBAND_MINUTES = 100;
 
 export const TRAVEL_DIRECTIONS: TravelDirectionConfig[] = [
   {

@@ -21,6 +21,8 @@ interface UseDeparturesParams {
   routeKey: RouteKey;
   directionKey: DirectionKey;
   limit?: number;
+  /** Also list sailings from this many minutes back. */
+  back?: number;
 }
 
 export interface UseDeparturesResult {
@@ -36,6 +38,7 @@ export function useDepartures({
   routeKey,
   directionKey,
   limit = 6,
+  back = 0,
 }: UseDeparturesParams): UseDeparturesResult {
   const [data, setData] = useState<DeparturesResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +70,9 @@ export function useDepartures({
           direction: directionKey,
           limit: String(limit),
         });
+        if (back > 0) {
+          params.set("back", String(back));
+        }
 
         const response = await fetch(`/api/departures?${params.toString()}`, {
           signal: abortController.signal,
@@ -119,7 +125,7 @@ export function useDepartures({
         }
       }
     },
-    [cacheKey, directionKey, limit, routeKey],
+    [back, cacheKey, directionKey, limit, routeKey],
   );
 
   useEffect(() => {

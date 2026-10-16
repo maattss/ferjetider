@@ -13,10 +13,16 @@ import {
   departureId,
   firstSailing,
   planConnection,
+  stillOnTheWay,
 } from "@/lib/trip";
 import type { Departure } from "@/types/departures";
 
 const DRIVE_MS = DRIVE_BETWEEN_SAMBAND_MINUTES * 60_000;
+/**
+ * How far back the first leg lists sailings that already left: the longest
+ * crossing plus the drive, with room to spare. Older ones cannot change the plan.
+ */
+const EARLIER_MINUTES = 180;
 
 interface TripViewProps {
   travelDirection: TravelDirectionConfig;
@@ -34,7 +40,9 @@ export function TripView({
   const firstQuery = useDepartures({
     routeKey: firstRoute.routeKey,
     directionKey: firstRoute.directionKey,
-    limit: 7,
+    // Three hours back at 15-minute headways, plus the ones still to come.
+    limit: 20,
+    back: EARLIER_MINUTES,
   });
   // The connection is often 3 hours out, more if a later first ferry is
   // chosen; at daytime 15-minute headways that is well past a dozen sailings.
@@ -55,13 +63,18 @@ export function TripView({
 
   const { chosen, choose } = useChosenFerry(travelDirection.key, now);
 
-  const firstDepartures = upcomingDepartures(firstQuery.data?.departures ?? [], now);
+  const allFirstDepartures = firstQuery.data?.departures ?? [];
+  const firstDepartures = upcomingDepartures(allFirstDepartures, now);
+  // Sailings that left, for a driver who opens the page once already on board.
+  const earlierDepartures = allFirstDepartures.filter(
+    (d) => !firstDepartures.includes(d) && stillOnTheWay(d, now, DRIVE_MS),
+  );
   const secondDepartures = upcomingDepartures(secondQuery.data?.departures ?? [], now);
 
   // Prefer the live copy of the chosen sailing so a new delay shows up; once it
-  // has sailed it drops out of the feed and the stored copy carries the plan.
+  // drops out of the feed the stored copy carries the plan.
   const liveChosen = chosen
-    ? firstDepartures.find((d) => departureId(d) === departureId(chosen))
+    ? allFirstDepartures.find((d) => departureId(d) === departureId(chosen))
     : undefined;
   const chosenStillSails = chosen !== null && !(liveChosen?.cancelled ?? false);
   const first: Departure | undefined = chosenStillSails
@@ -85,9 +98,11 @@ export function TripView({
   return (
     <div className="board">
       <DeparturePanel
+        key={travelDirection.key}
         route={firstRoute}
         query={firstQuery}
         departures={firstDepartures}
+        earlier={earlierDepartures}
         now={now}
         target={first}
         chosenId={chosenStillSails && first ? departureId(first) : null}
