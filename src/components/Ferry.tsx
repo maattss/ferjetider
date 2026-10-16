@@ -48,12 +48,11 @@ export function CrossingTrack({
   const pct = Math.max(0, Math.min(1, progress)) * 100;
   return (
     <div className="crossing" aria-label={`${Math.round(pct)} % av overfarten`}>
-      <span className="crossing-quay">{fromLabel}</span>
       <div className="crossing-track">
         <div className="crossing-done" style={{ width: `${pct}%` }} />
         <svg
           className="crossing-ferry"
-          style={{ left: `${pct}%` }}
+          style={{ left: `calc((100% - 60px) * ${pct / 100})` }}
           width="60"
           height="22"
           viewBox="0 -4 90 34"
@@ -64,7 +63,10 @@ export function CrossingTrack({
           </g>
         </svg>
       </div>
-      <span className="crossing-quay">{toLabel}</span>
+      <div className="crossing-quays">
+        <span>{fromLabel}</span>
+        <span>{toLabel}</span>
+      </div>
     </div>
   );
 }
