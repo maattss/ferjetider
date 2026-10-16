@@ -30,6 +30,15 @@ export function firstSailing(departures: Departure[]): Departure | undefined {
   return departures.find((departure) => !departure.cancelled);
 }
 
+/**
+ * Whether a sailing that already left can still carry the plan: until you
+ * should have reached the second quay, picking it says which ferry you make.
+ */
+export function stillOnTheWay(departure: Departure, now: Date, driveMs: number): boolean {
+  const arrivalMs = time(departure.arrivalTimeIso);
+  return !Number.isNaN(arrivalMs) && arrivalMs + driveMs + BOARDING_MARGIN_MS > now.getTime();
+}
+
 export function planConnection(
   first: Departure,
   secondDepartures: Departure[],

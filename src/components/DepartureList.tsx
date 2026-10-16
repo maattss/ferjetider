@@ -1,4 +1,4 @@
-import { DELAY_THRESHOLD_MINUTES } from "@/lib/departures";
+import { DELAY_THRESHOLD_MINUTES, DEPARTED_GRACE_MS } from "@/lib/departures";
 import type { Departure } from "@/types/departures";
 import { formatRelativeLabel, minutesUntilDeparture } from "@/lib/time";
 import { departureId } from "@/lib/trip";
@@ -71,9 +71,12 @@ export function DepartureList({
       {departures.map((d, index) => {
         const id = departureId(d);
         const isChosen = id === chosenId;
+        const hasSailed =
+          new Date(d.departureTimeIso).getTime() <= now.getTime() - DEPARTED_GRACE_MS;
         const className = [
           "row",
           d.cancelled ? "cancelled" : "",
+          hasSailed ? "sailed" : "",
           isChosen ? "chosen" : "",
         ]
           .filter(Boolean)
@@ -85,7 +88,11 @@ export function DepartureList({
               <RowTags departure={d} isChosen={isChosen} />
             </span>
             <span className="row-in tabular">
-              {d.cancelled ? "" : formatRelativeLabel(minutesUntilDeparture(d.departureTimeIso, now))}
+              {d.cancelled
+                ? ""
+                : hasSailed
+                  ? "gikk"
+                  : formatRelativeLabel(minutesUntilDeparture(d.departureTimeIso, now))}
             </span>
           </>
         );

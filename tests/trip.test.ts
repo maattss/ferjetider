@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { firstSailing, planConnection } from "../src/lib/trip";
+import { firstSailing, planConnection, stillOnTheWay } from "../src/lib/trip";
 import type { Departure } from "../src/types/departures";
 
 const MIN = 60_000;
@@ -49,6 +49,19 @@ describe("planConnection", () => {
     const plan = planConnection(first, [departure("11:25", "12:10")], DRIVE_MS);
     expect(plan?.second).toBeNull();
     expect(plan?.marginMs).toBeNull();
+  });
+});
+
+describe("stillOnTheWay", () => {
+  // Lands 10:28; at the second quay 11:58, boarding margin until 12:03.
+  const sailed = departure("10:00", "10:28");
+
+  it("keeps a sailing that left until you should be at the second quay", () => {
+    expect(stillOnTheWay(sailed, new Date("2026-02-22T12:00:00.000Z"), DRIVE_MS)).toBe(true);
+  });
+
+  it("drops it once that is past", () => {
+    expect(stillOnTheWay(sailed, new Date("2026-02-22T12:04:00.000Z"), DRIVE_MS)).toBe(false);
   });
 });
 

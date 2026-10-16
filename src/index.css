@@ -441,6 +441,29 @@ button.row:active {
   font-size: 20px;
   color: var(--ink-3);
 }
+.row.sailed .row-time {
+  color: var(--ink-2);
+}
+.list-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 8px;
+}
+.list-nav-button {
+  background: none;
+  border: 0;
+  min-height: 44px;
+  padding: 0 8px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.list-nav-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
 .row-gap {
   padding: 4px 16px;
   font-size: 15px;
