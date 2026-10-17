@@ -630,3 +630,40 @@ button.row:active {
     transition: none;
   }
 }
+
+/* ============================================================
+   ABOUT (static page text, also prerendered for crawlers)
+============================================================ */
+.about {
+  margin-top: 28px;
+  padding: 20px 16px 0;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-3);
+}
+.about h2 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.about p {
+  margin: 0 0 12px;
+  max-width: 70ch;
+}
+.about ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.about a {
+  color: var(--blue-text);
+  text-decoration: none;
+}
+.about a:hover {
+  text-decoration: underline;
+}
