@@ -70,21 +70,23 @@ vercel --prod
 
 ## SEO
 
-Satt opp for å rangere godt over tid:
+Hver indekserbare side bygges som egen HTML-fil med title, description,
+canonical, Open Graph og JSON-LD, og med overskrift og tekst ferdig i
+`#root`. Søkemotorer får dermed innhold uten å kjøre JavaScript. Sidene og
+tekstene ligger i `src/lib/seo.ts`, og Vite-pluginen i `vite.config.ts`
+skriver dem ut ved build:
 
-- Dynamiske metadata (title/description/canonical) per valgt samband/retning
-- Open Graph + Twitter-kort for bedre deling og CTR
-- Schema.org (`WebSite` + `FAQPage`)
-- Dynamisk `robots.txt` og `sitemap.xml`
-- Open Graph-bilde som PNG (SVG rendres ikke av Facebook/LinkedIn/Slack/X)
+- `/`: mot Bergen (standardretning)
+- `/mot-stavanger`
+- `/arsvagen-mortavika`
+- `/halhjem-sandvikvag`
 
-Standardretningen (`mot_bergen`) ligger på `/` uten query-parameter, slik at
-rot-URL-en er sin egen canonical i stedet for å peke videre til en duplikat.
+Appen viser den samme teksten nederst på siden, så innholdet er likt med og
+uten JavaScript. Gamle lenker med `?travelDirection=` sendes videre til riktig
+side.
 
-Endepunkter:
-
-- `https://ferjetider.fyi/robots.txt`
-- `https://ferjetider.fyi/sitemap.xml`
+`robots.txt` og `sitemap.xml` genereres statisk ved build (`lastmod` er
+build-datoen).
 
 ## Grafikk
 

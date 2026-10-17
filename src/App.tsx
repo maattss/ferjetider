@@ -8,19 +8,40 @@ import {
   isTravelDirectionKey,
 } from "@/config/routes";
 import { FerryMark } from "@/components/Ferry";
+import { SeoContent } from "@/components/SeoContent";
 import { TripView } from "@/components/TripView";
 import { useNow } from "@/hooks/useNow";
 import { readStorage, writeStorage } from "@/lib/storage";
 import { formatOsloTime } from "@/lib/time";
+import {
+  SEO_PAGE_MAP,
+  buildJsonLd,
+  directionPage,
+  findSeoPage,
+  pageUrl,
+  type SeoPage,
+} from "@/lib/seo";
 
 const DEFAULT_TRAVEL_DIRECTION = TRAVEL_DIRECTIONS[0].key;
-const DEFAULT_SITE_ORIGIN = "https://ferjetider.fyi";
 const DIRECTION_STORAGE_KEY = "ferjetider:travelDirection";
 
-/** A shared link wins; otherwise reopen in the direction last driven. */
-function initialTravelDirection(): TravelDirectionKey {
+function initialPage(): SeoPage {
   if (typeof window === "undefined") {
-    return DEFAULT_TRAVEL_DIRECTION;
+    return SEO_PAGE_MAP.home;
+  }
+  return findSeoPage(window.location.pathname) ?? SEO_PAGE_MAP.home;
+}
+
+/**
+ * A direction page's own direction wins, then an old shared
+ * `?travelDirection=` link, then the direction last driven.
+ */
+function initialTravelDirection(page: SeoPage): TravelDirectionKey {
+  if (page.travelDirection && page.key !== "home") {
+    return page.travelDirection;
+  }
+  if (typeof window === "undefined") {
+    return page.travelDirection ?? DEFAULT_TRAVEL_DIRECTION;
   }
   const fromUrl = new URLSearchParams(window.location.search).get("travelDirection");
   if (fromUrl && isTravelDirectionKey(fromUrl)) {
@@ -54,9 +75,10 @@ function setJsonLd(content: string): void {
 }
 
 export default function App(): JSX.Element {
-  const [travelDirectionKey, setTravelDirectionKey] =
-    useState<TravelDirectionKey>(initialTravelDirection);
-  const [siteOrigin, setSiteOrigin] = useState(DEFAULT_SITE_ORIGIN);
+  const [landingPage] = useState(initialPage);
+  const [travelDirectionKey, setTravelDirectionKey] = useState<TravelDirectionKey>(() =>
+    initialTravelDirection(landingPage),
+  );
   const [updatedAtByPanel, setUpdatedAtByPanel] = useState<
     Record<string, string>
   >({});
@@ -84,13 +106,11 @@ export default function App(): JSX.Element {
     [],
   );
 
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    setSiteOrigin(window.location.origin);
-  }, []);
+  // Samband pages keep their URL whichever way you drive; the direction pages
+  // swap between "/" and "/mot-stavanger".
+  const page = landingPage.travelDirection
+    ? directionPage(travelDirectionKey)
+    : landingPage;
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -99,36 +119,18 @@ export default function App(): JSX.Element {
 
     writeStorage(DIRECTION_STORAGE_KEY, travelDirectionKey);
 
+    // Old links carried the direction as a query parameter; the path says it now.
     const params = new URLSearchParams(window.location.search);
-    const isDefault = travelDirectionKey === DEFAULT_TRAVEL_DIRECTION;
-
-    // Keep the bare root URL clean for the default direction, so "/" stays the
-    // canonical entry point instead of self-redirecting to a parameterised twin.
-    if (isDefault) {
-      params.delete("travelDirection");
-    } else {
-      params.set("travelDirection", travelDirectionKey);
-    }
-
+    params.delete("travelDirection");
     const query = params.toString();
-    const nextUrl = query
-      ? `${window.location.pathname}?${query}`
-      : window.location.pathname;
+    const nextUrl = query ? `${page.path}?${query}` : page.path;
 
     if (nextUrl === `${window.location.pathname}${window.location.search}`) {
       return;
     }
 
     window.history.replaceState(null, "", nextUrl);
-  }, [travelDirectionKey]);
-
-  const currentUrl = useMemo(
-    () =>
-      travelDirectionKey === DEFAULT_TRAVEL_DIRECTION
-        ? `${siteOrigin}/`
-        : `${siteOrigin}/?travelDirection=${travelDirectionKey}`,
-    [siteOrigin, travelDirectionKey],
-  );
+  }, [page, travelDirectionKey]);
 
   const travelDirection = TRAVEL_DIRECTION_MAP[travelDirectionKey];
 
@@ -147,101 +149,18 @@ export default function App(): JSX.Element {
     return stamps.length > 0 ? new Date(Math.min(...stamps)) : null;
   }, [travelDirection, updatedAtByPanel]);
 
-  const seoTitle = useMemo(
-    () => `Ferjetider ${travelDirection.label} | Bergen-Stavanger`,
-    [travelDirection],
-  );
-
-  const seoDescription = useMemo(
-    () =>
-      `Live ferjetider ${travelDirection.label.toLowerCase()} på E39. Viser neste avganger fra ${travelDirection.routes.map((r) => r.fromLabel).join(" og ")} med sanntidsoppdatering.`,
-    [travelDirection],
-  );
-
-  const faqSchema = useMemo(
-    () =>
-      JSON.stringify({
-        "@context": "https://schema.org",
-        "@graph": [
-          {
-            "@type": "WebSite",
-            name: "Ferjetider Bergen-Stavanger",
-            url: siteOrigin,
-            inLanguage: "nb-NO",
-            description:
-              "Live ferjetider og fergeruter for Arsvågen-Mortavika og Halhjem-Sandvikvåg på E39.",
-            keywords:
-              "ferjetider, fergetider, ferjeruter, fergeruter, ferje, ferge, Arsvågen, Mortavika, Halhjem, Sandvikvåg, Bergen, Stavanger, E39",
-          },
-          {
-            "@type": "FAQPage",
-            mainEntity: [
-              {
-                "@type": "Question",
-                name: "Hvilke ferjesamband vises på siden?",
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: "Siden viser Arsvågen-Mortavika og Halhjem-Sandvikvåg i begge retninger på E39 mellom Bergen og Stavanger.",
-                },
-              },
-              {
-                "@type": "Question",
-                name: "Når går neste ferje fra Arsvågen til Mortavika?",
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: "Se sanntidsavganger for Arsvågen-Mortavika direkte på ferjetider.fyi. Siden oppdateres automatisk hvert minutt med live-data.",
-                },
-              },
-              {
-                "@type": "Question",
-                name: "Når går neste ferje fra Halhjem til Sandvikvåg?",
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: "Se sanntidsavganger for Halhjem-Sandvikvåg direkte på ferjetider.fyi. Siden oppdateres automatisk hvert minutt med live-data.",
-                },
-              },
-              {
-                "@type": "Question",
-                name: "Hvor ofte oppdateres ferjetidene?",
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: "Ferjetidene oppdateres automatisk hvert minutt, og på nytt så snart du åpner siden igjen.",
-                },
-              },
-              {
-                "@type": "Question",
-                name: "Hva skjer hvis live-data ikke er tilgjengelig?",
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: "Siden viser sist lagrede avganger og markerer tydelig at data kan være utdaterte.",
-                },
-              },
-              {
-                "@type": "Question",
-                name: "Hva er fergetider for E39?",
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: "E39-sambandene Arsvågen-Mortavika og Halhjem-Sandvikvåg trafikkeres av Fjord1. Avgangene varierer, men ferjer går vanligvis hvert 20.-30. minutt i rushtiden. Se sanntidsavganger på ferjetider.fyi.",
-                },
-              },
-            ],
-          },
-        ],
-      }),
-    [siteOrigin],
-  );
-
   useEffect(() => {
-    document.title = seoTitle;
-    setMetaContent("meta[name='description']", seoDescription);
-    setMetaContent("meta[property='og:title']", seoTitle);
-    setMetaContent("meta[property='og:description']", seoDescription);
-    setMetaContent("meta[property='og:url']", currentUrl);
-    setMetaContent("meta[name='twitter:title']", seoTitle);
-    setMetaContent("meta[name='twitter:description']", seoDescription);
-    setCanonicalUrl(currentUrl);
-    setJsonLd(faqSchema);
-  }, [currentUrl, faqSchema, seoDescription, seoTitle]);
+    const url = pageUrl(page);
+    document.title = page.title;
+    setMetaContent("meta[name='description']", page.description);
+    setMetaContent("meta[property='og:title']", page.title);
+    setMetaContent("meta[property='og:description']", page.description);
+    setMetaContent("meta[property='og:url']", url);
+    setMetaContent("meta[name='twitter:title']", page.title);
+    setMetaContent("meta[name='twitter:description']", page.description);
+    setCanonicalUrl(url);
+    setJsonLd(buildJsonLd(page));
+  }, [page]);
 
   return (
     <>
@@ -268,9 +187,7 @@ export default function App(): JSX.Element {
             })}
           </div>
           <span className="clock tabular">{formatOsloTime(now)}</span>
-          <h1 className="sr-only">
-            Ferjeavganger på E39 mellom Stavanger og Bergen, {travelDirection.label.toLowerCase()}
-          </h1>
+          <h1 className="sr-only">{page.heading}</h1>
         </header>
 
         <main className="main">
@@ -291,6 +208,8 @@ export default function App(): JSX.Element {
               {lastUpdated ? `Oppdatert ${formatOsloTime(lastUpdated)}` : "Henter data…"}
             </p>
           </footer>
+
+          <SeoContent page={page} />
         </main>
       </div>
 
