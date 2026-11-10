@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import {
   DRIVE_BETWEEN_SAMBAND_MINUTES,
+  ROUTE_MAP,
   TRAVEL_DIRECTIONS,
   TRAVEL_DIRECTION_MAP,
   type TravelDirectionKey,
@@ -23,6 +24,8 @@ import {
 } from "@/lib/seo";
 
 const DEFAULT_TRAVEL_DIRECTION = TRAVEL_DIRECTIONS[0].key;
+const BOKNAFJORDEN_MINUTES = ROUTE_MAP.arsvagen_mortavika.directions[0].crossingMinutes;
+const LANGENUEN_MINUTES = ROUTE_MAP.halhjem_sandvikvag.directions[0].crossingMinutes;
 const DIRECTION_STORAGE_KEY = "ferjetider:travelDirection";
 
 function initialPage(): SeoPage {
@@ -200,8 +203,8 @@ export default function App(): JSX.Element {
 
           <footer className="foot">
             <p>
-              Sanntid fra Entur. Overfart ca. 28 min (Mortavika–Arsvågen) og 45 min
-              (Sandvikvåg–Halhjem), med ca. {DRIVE_BETWEEN_SAMBAND_MINUTES} min kjøring
+              Sanntid fra Entur. Overfart ca. {BOKNAFJORDEN_MINUTES} min
+              (Mortavika–Arsvågen) og {LANGENUEN_MINUTES} min (Sandvikvåg–Halhjem), med ca. {DRIVE_BETWEEN_SAMBAND_MINUTES} min kjøring
               imellom. Trykk på en avgang for å planlegge ut fra den.
             </p>
             <p className="tabular">

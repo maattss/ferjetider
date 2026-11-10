@@ -15,7 +15,6 @@ export interface DirectionConfig {
   fromLabel: string;
   toLabel: string;
   fromStopPlaceId: string;
-  toStopPlaceId: string;
   destinationAliases: string[];
   /** Used when Entur's timetable does not give a crossing time for a trip. */
   crossingMinutes: number;
@@ -38,7 +37,6 @@ export const ROUTES: RouteConfig[] = [
         fromLabel: "Arsvågen",
         toLabel: "Mortavika",
         fromStopPlaceId: "NSR:StopPlace:58499",
-        toStopPlaceId: "NSR:StopPlace:58653",
         destinationAliases: ["Mortavika"],
         crossingMinutes: 28,
       },
@@ -48,7 +46,6 @@ export const ROUTES: RouteConfig[] = [
         fromLabel: "Mortavika",
         toLabel: "Arsvågen",
         fromStopPlaceId: "NSR:StopPlace:58653",
-        toStopPlaceId: "NSR:StopPlace:58499",
         destinationAliases: ["Arsvågen", "Arsvagen"],
         crossingMinutes: 28,
       },
@@ -64,7 +61,6 @@ export const ROUTES: RouteConfig[] = [
         fromLabel: "Halhjem",
         toLabel: "Sandvikvåg",
         fromStopPlaceId: "NSR:StopPlace:58463",
-        toStopPlaceId: "NSR:StopPlace:58462",
         destinationAliases: ["Sandvikvåg", "Sandvikvag"],
         crossingMinutes: 45,
       },
@@ -74,7 +70,6 @@ export const ROUTES: RouteConfig[] = [
         fromLabel: "Sandvikvåg",
         toLabel: "Halhjem",
         fromStopPlaceId: "NSR:StopPlace:58462",
-        toStopPlaceId: "NSR:StopPlace:58463",
         destinationAliases: ["Halhjem"],
         crossingMinutes: 45,
       },

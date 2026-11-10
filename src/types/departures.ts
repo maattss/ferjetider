@@ -9,6 +9,11 @@ export interface Departure {
   delayMinutes: number;
   cancelled: boolean;
   displayTime: string;
+  /**
+   * Minutes from when the server built the response. Responses are cached for
+   * up to 90 seconds, so this is approximate; the page counts from
+   * departureTimeIso instead. Kept for API users.
+   */
   minutesUntil: number;
   destination: string;
   quay: string;

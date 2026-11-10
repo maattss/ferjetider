@@ -142,8 +142,12 @@ export function useDepartures({
 
     void fetchDepartures(Boolean(cached));
 
+    // A hidden tab needs no fresh data; the visibility handler below fetches
+    // as soon as it is shown again.
     const timer = window.setInterval(() => {
-      void fetchDepartures(true);
+      if (document.visibilityState === "visible") {
+        void fetchDepartures(true);
+      }
     }, REFRESH_INTERVAL_MS);
 
     const handleVisibility = () => {
