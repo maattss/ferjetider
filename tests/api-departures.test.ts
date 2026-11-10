@@ -3,7 +3,9 @@ import {
   type ApiRequest,
   type ApiResponse,
   buildDepartures,
+  clearUpstreamCache,
   collectAlerts,
+  limitStep,
   default as handler,
   scheduledCrossingMs,
   parseRequest,
@@ -52,6 +54,8 @@ function createMockResponse<TBody>(): MockResponse<TBody> {
 describe("api departures", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    clearUpstreamCache();
   });
 
   it("parses valid request params", () => {
@@ -96,9 +100,27 @@ describe("api departures", () => {
 
     expect(parse()).toBe(0);
     expect(parse("180")).toBe(180);
+    // Rounded up to whole hours, so near-identical requests share a cache entry.
+    expect(parse("1")).toBe(60);
+    expect(parse("150")).toBe(180);
     expect(parse("9999")).toBe(240);
     expect(parse("-5")).toBe(0);
     expect(parse("abc")).toBe(0);
+  });
+
+  it("rejects unknown and repeated parameters, which would only bust the cache", () => {
+    const base = { route: "arsvagen_mortavika", direction: "arsvagen_to_mortavika" };
+    expect(parseRequest({ query: { ...base, x: "123" } })).toBeNull();
+    expect(parseRequest({ query: { ...base, limit: ["6", "12"] } })).toBeNull();
+    expect(parseRequest({ query: base })).not.toBeNull();
+  });
+
+  it("asks Entur for a fixed set of sizes", () => {
+    expect(limitStep(1)).toBe(6);
+    expect(limitStep(6)).toBe(6);
+    expect(limitStep(7)).toBe(12);
+    expect(limitStep(20)).toBe(20);
+    expect(limitStep(30)).toBe(30);
   });
 
   it("rejects invalid route/direction", () => {
@@ -223,6 +245,22 @@ describe("api departures", () => {
     expect(scheduledCrossingMs({})).toBeNull();
   });
 
+  it("counts the crossing from this call's stop, not the trip's first", () => {
+    const passingTimes = [
+      { departure: { time: "10:00:00" } },
+      { arrival: { time: "10:20:00" }, departure: { time: "10:25:00" } },
+      { arrival: { time: "10:50:00" } },
+    ];
+    expect(
+      scheduledCrossingMs({ stopPositionInPattern: 1, serviceJourney: { passingTimes } }),
+    ).toBe(25 * 60_000);
+    // Missing or out-of-range positions keep the old whole-trip reading.
+    expect(scheduledCrossingMs({ serviceJourney: { passingTimes } })).toBe(50 * 60_000);
+    expect(
+      scheduledCrossingMs({ stopPositionInPattern: 2, serviceJourney: { passingTimes } }),
+    ).toBe(50 * 60_000);
+  });
+
   it("collects deduplicated alerts, preferring Norwegian", () => {
     const weather = {
       summary: [
@@ -307,6 +345,53 @@ describe("api departures", () => {
     ).query as string;
     expect(query).toContain("includeCancelledTrips: true");
     expect(query).toContain("whiteListedModes: [water]");
+  });
+
+  it("shares one Entur call between requests that differ only in limit", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(async () => ({
+        ok: true,
+        json: async () => ({ data: { stopPlace: { estimatedCalls: [] } } }),
+      })),
+    );
+    const request = (limit: string): ApiRequest => ({
+      method: "GET",
+      query: { route: "arsvagen_mortavika", direction: "arsvagen_to_mortavika", limit },
+    });
+
+    await handler(request("7"), createMockResponse().res);
+    await handler(request("12"), createMockResponse().res);
+    expect(fetch).toHaveBeenCalledTimes(1);
+
+    await handler(request("20"), createMockResponse().res);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not remember a failed Entur call", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockRejectedValueOnce(new Error("network down"))
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ data: { stopPlace: { estimatedCalls: [] } } }),
+        }),
+    );
+    const request: ApiRequest = {
+      method: "GET",
+      query: { route: "arsvagen_mortavika", direction: "arsvagen_to_mortavika" },
+    };
+
+    const failed = createMockResponse();
+    await handler(request, failed.res);
+    expect(failed.statusCode).toBe(502);
+
+    const retried = createMockResponse();
+    await handler(request, retried.res);
+    expect(retried.statusCode).toBe(200);
   });
 
   it("returns 502 when Entur fetch fails", async () => {

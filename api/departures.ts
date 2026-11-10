@@ -37,10 +37,20 @@ const DEFAULT_LIMIT = 6;
 // Daytime sailings run every ~15 min and the trip plan looks up to ~5 hours
 // ahead for the second ferry, so the ceiling has to cover that.
 const MAX_LIMIT = 30;
+/**
+ * Entur is asked for one of these sizes, never the exact limit, so requests
+ * that differ only a little in `limit` share one upstream call.
+ */
+const LIMIT_STEPS = [6, 12, 20, MAX_LIMIT] as const;
 // Lets the first leg list sailings that already left, for a driver who opens
 // the page on the way. Past the drive to the second quay they no longer matter.
 const MAX_BACK_MINUTES = 240;
+/** `back` is rounded up to this, for the same reason as LIMIT_STEPS. */
+const BACK_STEP_MINUTES = 60;
 const ENTUR_TIMEOUT_MS = 5_000;
+/** Matches the CDN's s-maxage, so a warm function adds no extra staleness. */
+const UPSTREAM_CACHE_MS = 30_000;
+const ALLOWED_PARAMS = new Set(["route", "direction", "limit", "back"]);
 
 const ESTIMATED_CALLS_QUERY = `
   query EstimatedCalls(
@@ -59,6 +69,7 @@ const ESTIMATED_CALLS_QUERY = `
       ) {
         realtime
         cancellation
+        stopPositionInPattern
         aimedDepartureTime
         expectedDepartureTime
         destinationDisplay {
@@ -108,6 +119,8 @@ interface PassingTimeNode {
 export interface EstimatedCallNode {
   realtime?: boolean;
   cancellation?: boolean;
+  /** This call's index in the trip's stops, and so in its passing times. */
+  stopPositionInPattern?: number | null;
   aimedDepartureTime?: string | null;
   expectedDepartureTime?: string | null;
   destinationDisplay?: {
@@ -143,14 +156,19 @@ interface ParsedRequest {
   directionConfig: DirectionConfig;
 }
 
+/**
+ * Every distinct query string is its own entry in Vercel's CDN cache, and each
+ * miss reaches Entur. Refusing parameters we do not read, and repeated ones,
+ * keeps a cache-busting `?x=123` from turning into an Entur call.
+ */
+function hasOnlyKnownParams(query: ApiRequest["query"]): boolean {
+  return Object.entries(query).every(
+    ([key, value]) => ALLOWED_PARAMS.has(key) && !Array.isArray(value),
+  );
+}
+
 function asSingleQueryValue(value: string | string[] | undefined): string | null {
-  if (typeof value === "string") {
-    return value;
-  }
-  if (Array.isArray(value) && value.length > 0) {
-    return value[0];
-  }
-  return null;
+  return typeof value === "string" ? value : null;
 }
 
 function parseLimit(rawLimit: string | null): number {
@@ -166,15 +184,25 @@ function parseLimit(rawLimit: string | null): number {
   return Math.max(1, Math.min(MAX_LIMIT, numericLimit));
 }
 
+/** Rounded up to whole hours: an hour more of past sailings costs nothing. */
 function parseBackMinutes(rawBack: string | null): number {
   const minutes = rawBack ? Number.parseInt(rawBack, 10) : 0;
   if (Number.isNaN(minutes)) {
     return 0;
   }
-  return Math.max(0, Math.min(MAX_BACK_MINUTES, minutes));
+  const clamped = Math.max(0, Math.min(MAX_BACK_MINUTES, minutes));
+  return Math.ceil(clamped / BACK_STEP_MINUTES) * BACK_STEP_MINUTES;
+}
+
+/** The smallest fetch size that covers the limit. */
+export function limitStep(limit: number): number {
+  return LIMIT_STEPS.find((step) => step >= limit) ?? MAX_LIMIT;
 }
 
 export function parseRequest(req: ApiRequest): ParsedRequest | null {
+  if (!hasOnlyKnownParams(req.query)) {
+    return null;
+  }
   const routeValue = asSingleQueryValue(req.query.route);
   const directionValue = asSingleQueryValue(req.query.direction);
   const limitValue = asSingleQueryValue(req.query.limit);
@@ -229,6 +257,9 @@ function localTimeToSeconds(value: string | null | undefined): number | null {
  * Entur has no live arrival times for these ferries, but the timetable's
  * passing times give the scheduled crossing for each trip. Times are local
  * clock times, so a trip across midnight wraps.
+ *
+ * The crossing starts at this call's own stop, not at the trip's first one, so
+ * a trip that calls somewhere before our quay is not counted from there.
  */
 export function scheduledCrossingMs(call: EstimatedCallNode): number | null {
   const passingTimes = call.serviceJourney?.passingTimes;
@@ -236,7 +267,16 @@ export function scheduledCrossingMs(call: EstimatedCallNode): number | null {
     return null;
   }
 
-  const departure = localTimeToSeconds(passingTimes[0].departure?.time);
+  const position = call.stopPositionInPattern;
+  const startIndex =
+    typeof position === "number" &&
+    Number.isInteger(position) &&
+    position >= 0 &&
+    position < passingTimes.length - 1
+      ? position
+      : 0;
+
+  const departure = localTimeToSeconds(passingTimes[startIndex].departure?.time);
   const arrival = localTimeToSeconds(passingTimes[passingTimes.length - 1].arrival?.time);
   if (departure === null || arrival === null) {
     return null;
@@ -357,6 +397,48 @@ function sendError(
   return res.status(code).json({ error: message });
 }
 
+const upstreamCache = new Map<string, { expiresAtMs: number; result: Promise<StopPlaceNode | null> }>();
+
+/** Only for tests, which need each case to reach the mocked fetch. */
+export function clearUpstreamCache(): void {
+  upstreamCache.clear();
+}
+
+/**
+ * A warm function instance answers requests that map to the same Entur call
+ * from memory for a short while. Concurrent misses share one call; a failed
+ * call is forgotten at once so the next request tries again.
+ */
+function cachedEnturStopPlace(
+  directionConfig: DirectionConfig,
+  limit: number,
+  backMinutes: number,
+): Promise<StopPlaceNode | null> {
+  const step = limitStep(limit);
+  const key = `${directionConfig.key}:${step}:${backMinutes}`;
+  const now = Date.now();
+
+  for (const [cachedKey, entry] of upstreamCache) {
+    if (entry.expiresAtMs <= now) {
+      upstreamCache.delete(cachedKey);
+    }
+  }
+
+  const cached = upstreamCache.get(key);
+  if (cached) {
+    return cached.result;
+  }
+
+  const result = fetchEnturStopPlace(directionConfig, step, backMinutes);
+  upstreamCache.set(key, { expiresAtMs: now + UPSTREAM_CACHE_MS, result });
+  result.catch(() => {
+    if (upstreamCache.get(key)?.result === result) {
+      upstreamCache.delete(key);
+    }
+  });
+  return result;
+}
+
 async function fetchEnturStopPlace(
   directionConfig: DirectionConfig,
   limit: number,
@@ -425,12 +507,12 @@ export default async function handler(
     return sendError(
       res,
       400,
-      "Ugyldig forespørsel. Bruk gyldig route/direction og valgfri limit.",
+      "Ugyldig forespørsel. Bruk gyldig route og direction, eventuelt limit og back, og ingen andre parametre.",
     );
   }
 
   try {
-    const stopPlace = await fetchEnturStopPlace(
+    const stopPlace = await cachedEnturStopPlace(
       parsedRequest.directionConfig,
       parsedRequest.limit,
       parsedRequest.backMinutes,
