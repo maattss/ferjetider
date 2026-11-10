@@ -84,7 +84,7 @@ export function DeparturePanel({
   onSelect,
   onReset,
 }: DeparturePanelProps): JSX.Element {
-  const { data, error, isLoading } = query;
+  const { error, isLoading } = query;
   // How many earlier sailings are paged in above the next one; 0 is the
   // default view. Clamped since earlier ones age out while browsing.
   const [earlierShown, setEarlierShown] = useState(0);

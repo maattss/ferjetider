@@ -1,8 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
+  type ApiRequest,
+  type ApiResponse,
   buildDepartures,
+  clearUpstreamCache,
   collectAlerts,
+  limitStep,
   default as handler,
   scheduledCrossingMs,
   parseRequest,
@@ -13,7 +16,7 @@ interface MockResponse<TBody> {
   headers: Record<string, string | string[]>;
   statusCode: number;
   body: TBody | null;
-  res: VercelResponse;
+  res: ApiResponse;
 }
 
 function createMockResponse<TBody>(): MockResponse<TBody> {
@@ -34,7 +37,7 @@ function createMockResponse<TBody>(): MockResponse<TBody> {
       headers[name] = value;
       return this;
     },
-  } as unknown as VercelResponse;
+  } as unknown as ApiResponse;
 
   return {
     headers,
@@ -51,6 +54,8 @@ function createMockResponse<TBody>(): MockResponse<TBody> {
 describe("api departures", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    clearUpstreamCache();
   });
 
   it("parses valid request params", () => {
@@ -60,7 +65,7 @@ describe("api departures", () => {
         direction: "arsvagen_to_mortavika",
         limit: "6",
       },
-    } as unknown as VercelRequest;
+    } as unknown as ApiRequest;
 
     const parsed = parseRequest(request);
 
@@ -77,7 +82,7 @@ describe("api departures", () => {
           direction: "arsvagen_to_mortavika",
           limit,
         },
-      } as unknown as VercelRequest)?.limit;
+      } as unknown as ApiRequest)?.limit;
 
     expect(parse("30")).toBe(30);
     expect(parse("500")).toBe(30);
@@ -91,13 +96,31 @@ describe("api departures", () => {
           direction: "halhjem_to_sandvikvag",
           ...(back === undefined ? {} : { back }),
         },
-      } as unknown as VercelRequest)?.backMinutes;
+      } as unknown as ApiRequest)?.backMinutes;
 
     expect(parse()).toBe(0);
     expect(parse("180")).toBe(180);
+    // Rounded up to whole hours, so near-identical requests share a cache entry.
+    expect(parse("1")).toBe(60);
+    expect(parse("150")).toBe(180);
     expect(parse("9999")).toBe(240);
     expect(parse("-5")).toBe(0);
     expect(parse("abc")).toBe(0);
+  });
+
+  it("rejects unknown and repeated parameters, which would only bust the cache", () => {
+    const base = { route: "arsvagen_mortavika", direction: "arsvagen_to_mortavika" };
+    expect(parseRequest({ query: { ...base, x: "123" } })).toBeNull();
+    expect(parseRequest({ query: { ...base, limit: ["6", "12"] } })).toBeNull();
+    expect(parseRequest({ query: base })).not.toBeNull();
+  });
+
+  it("asks Entur for a fixed set of sizes", () => {
+    expect(limitStep(1)).toBe(6);
+    expect(limitStep(6)).toBe(6);
+    expect(limitStep(7)).toBe(12);
+    expect(limitStep(20)).toBe(20);
+    expect(limitStep(30)).toBe(30);
   });
 
   it("rejects invalid route/direction", () => {
@@ -106,7 +129,7 @@ describe("api departures", () => {
         route: "nope",
         direction: "still-nope",
       },
-    } as unknown as VercelRequest;
+    } as unknown as ApiRequest;
 
     expect(parseRequest(request)).toBeNull();
   });
@@ -205,7 +228,7 @@ describe("api departures", () => {
     expect(departures[0].arrivalTimeIso).toBe("2026-02-22T10:35:00.000Z");
     expect(departures[1].cancelled).toBe(true);
     // No passing times: falls back to the configured crossing.
-    expect(departures[1].arrivalTimeIso).toBe("2026-02-22T10:48:00.000Z");
+    expect(departures[1].arrivalTimeIso).toBe("2026-02-22T10:44:00.000Z");
   });
 
   it("derives crossing time across midnight", () => {
@@ -220,6 +243,22 @@ describe("api departures", () => {
       }),
     ).toBe(45 * 60_000);
     expect(scheduledCrossingMs({})).toBeNull();
+  });
+
+  it("counts the crossing from this call's stop, not the trip's first", () => {
+    const passingTimes = [
+      { departure: { time: "10:00:00" } },
+      { arrival: { time: "10:20:00" }, departure: { time: "10:25:00" } },
+      { arrival: { time: "10:50:00" } },
+    ];
+    expect(
+      scheduledCrossingMs({ stopPositionInPattern: 1, serviceJourney: { passingTimes } }),
+    ).toBe(25 * 60_000);
+    // Missing or out-of-range positions keep the old whole-trip reading.
+    expect(scheduledCrossingMs({ serviceJourney: { passingTimes } })).toBe(50 * 60_000);
+    expect(
+      scheduledCrossingMs({ stopPositionInPattern: 2, serviceJourney: { passingTimes } }),
+    ).toBe(50 * 60_000);
   });
 
   it("collects deduplicated alerts, preferring Norwegian", () => {
@@ -251,7 +290,7 @@ describe("api departures", () => {
         route: "unknown",
         direction: "unknown",
       },
-    } as unknown as VercelRequest;
+    } as unknown as ApiRequest;
 
     const response = createMockResponse<{ error: string }>();
 
@@ -290,7 +329,7 @@ describe("api departures", () => {
         direction: "arsvagen_to_mortavika",
         limit: "6",
       },
-    } as unknown as VercelRequest;
+    } as unknown as ApiRequest;
 
     const response = createMockResponse<{
       departures: Array<{ destination: string }>;
@@ -308,6 +347,53 @@ describe("api departures", () => {
     expect(query).toContain("whiteListedModes: [water]");
   });
 
+  it("shares one Entur call between requests that differ only in limit", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(async () => ({
+        ok: true,
+        json: async () => ({ data: { stopPlace: { estimatedCalls: [] } } }),
+      })),
+    );
+    const request = (limit: string): ApiRequest => ({
+      method: "GET",
+      query: { route: "arsvagen_mortavika", direction: "arsvagen_to_mortavika", limit },
+    });
+
+    await handler(request("7"), createMockResponse().res);
+    await handler(request("12"), createMockResponse().res);
+    expect(fetch).toHaveBeenCalledTimes(1);
+
+    await handler(request("20"), createMockResponse().res);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not remember a failed Entur call", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockRejectedValueOnce(new Error("network down"))
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ data: { stopPlace: { estimatedCalls: [] } } }),
+        }),
+    );
+    const request: ApiRequest = {
+      method: "GET",
+      query: { route: "arsvagen_mortavika", direction: "arsvagen_to_mortavika" },
+    };
+
+    const failed = createMockResponse();
+    await handler(request, failed.res);
+    expect(failed.statusCode).toBe(502);
+
+    const retried = createMockResponse();
+    await handler(request, retried.res);
+    expect(retried.statusCode).toBe(200);
+  });
+
   it("returns 502 when Entur fetch fails", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network down")));
@@ -318,7 +404,7 @@ describe("api departures", () => {
         route: "arsvagen_mortavika",
         direction: "arsvagen_to_mortavika",
       },
-    } as unknown as VercelRequest;
+    } as unknown as ApiRequest;
 
     const response = createMockResponse<{ error: string }>();
 
@@ -348,7 +434,7 @@ describe("api departures", () => {
         route: "arsvagen_mortavika",
         direction: "arsvagen_to_mortavika",
       },
-    } as unknown as VercelRequest;
+    } as unknown as ApiRequest;
 
     const response = createMockResponse<{ error: string }>();
 

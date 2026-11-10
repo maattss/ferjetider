@@ -15,15 +15,19 @@ Avganger er tilgjengelig via et åpent JSON-API:
 
 ### Hent avganger
 
-`GET /api/departures?route=<ruteKey>&direction=<retningKey>&limit=<antall>`
+`GET /api/departures?route=<ruteKey>&direction=<retningKey>&limit=<antall>&back=<minutter>`
+
+- `limit` (valgfri): antall avganger, 1–30. Standard 6.
+- `back` (valgfri): ta også med avganger fra så mange minutter tilbake, 0–240, rundet opp til hel time. Standard 0.
+- Andre eller gjentatte parametre gir HTTP 400.
 
 **Gyldige ruteKey-verdier:**
 - `arsvagen_mortavika`
 - `halhjem_sandvikvag`
 
 **Gyldige retningKey-verdier:**
-- `arsvagen_to_mortavika` — Arsvågen → Mortavika (mot Bergen)
-- `mortavika_to_arsvagen` — Mortavika → Arsvågen (mot Stavanger)
+- `arsvagen_to_mortavika` — Arsvågen → Mortavika (mot Stavanger)
+- `mortavika_to_arsvagen` — Mortavika → Arsvågen (mot Bergen)
 - `halhjem_to_sandvikvag` — Halhjem → Sandvikvåg (mot Stavanger)
 - `sandvikvag_to_halhjem` — Sandvikvåg → Halhjem (mot Bergen)
 
@@ -37,20 +41,31 @@ GET https://ferjetider.fyi/api/departures?route=arsvagen_mortavika&direction=ars
 {
   "routeKey": "arsvagen_mortavika",
   "directionKey": "arsvagen_to_mortavika",
-  "updatedAt": "2024-01-15T10:30:00.000Z",
+  "updatedAt": "2024-01-15T09:30:00.000Z",
   "isFallback": false,
   "departures": [
     {
-      "departureTimeIso": "2024-01-15T10:45:00+01:00",
+      "departureTimeIso": "2024-01-15T09:45:00.000Z",
+      "aimedDepartureTimeIso": "2024-01-15T09:45:00.000Z",
+      "arrivalTimeIso": "2024-01-15T10:13:00.000Z",
+      "delayMinutes": 0,
+      "cancelled": false,
       "displayTime": "10:45",
       "minutesUntil": 15,
       "destination": "Mortavika",
       "quay": "Arsvågen",
       "realtime": true
     }
+  ],
+  "alerts": [
+    { "summary": "Trafikkmelding", "description": "Innstilt grunnet vær." }
   ]
 }
 ```
+
+`arrivalTimeIso` er beregnet fra rutetabellens overfartstid. `minutesUntil` er
+omtrentlig, fordi svaret caches i opptil 90 sekunder; regn fra
+`departureTimeIso` når presisjon betyr noe.
 
 ## Nettsted
 
