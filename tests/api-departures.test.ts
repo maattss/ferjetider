@@ -228,7 +228,7 @@ describe("api departures", () => {
     expect(departures[0].arrivalTimeIso).toBe("2026-02-22T10:35:00.000Z");
     expect(departures[1].cancelled).toBe(true);
     // No passing times: falls back to the configured crossing.
-    expect(departures[1].arrivalTimeIso).toBe("2026-02-22T10:48:00.000Z");
+    expect(departures[1].arrivalTimeIso).toBe("2026-02-22T10:44:00.000Z");
   });
 
   it("derives crossing time across midnight", () => {

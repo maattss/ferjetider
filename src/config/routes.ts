@@ -38,7 +38,7 @@ export const ROUTES: RouteConfig[] = [
         toLabel: "Mortavika",
         fromStopPlaceId: "NSR:StopPlace:58499",
         destinationAliases: ["Mortavika"],
-        crossingMinutes: 28,
+        crossingMinutes: 24,
       },
       {
         key: "mortavika_to_arsvagen",
@@ -47,7 +47,7 @@ export const ROUTES: RouteConfig[] = [
         toLabel: "Arsvågen",
         fromStopPlaceId: "NSR:StopPlace:58653",
         destinationAliases: ["Arsvågen", "Arsvagen"],
-        crossingMinutes: 28,
+        crossingMinutes: 24,
       },
     ],
   },

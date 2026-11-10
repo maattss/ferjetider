@@ -1,7 +1,7 @@
 # Forbedringsplan
 
-Fra gjennomgangen 9. november 2026. Punkt 1–7 er gjennomført på denne
-branchen. Det som står igjen, står nederst.
+Fra gjennomgangen 9. november 2026. Punkt 1–7 er gjennomført og verifisert
+på preview-deployen. Bare produktvalget nederst står igjen.
 
 ## Gjennomført
 
@@ -57,18 +57,17 @@ komponenter videre og pollet inn i senere tester.
 
 - [x] Gjort
 
-## Gjenstår
+## Verifisert på preview-deployen 10. november 2026
 
-- [ ] **Verifiser overfartstiden mot live data.** `scheduledCrossingMs` regner
-      nå fra avgangskaias posisjon i turen (`stopPositionInPattern`), ikke fra
-      turens første stopp. Feltet finnes i OpenTripPlanners Transmodel-skjema,
-      men det er ikke testet mot Entur fra dette miljøet. Hvis Entur ikke
-      kjenner feltet, svarer hele API-et 502. Sjekk `/api/departures` på
-      preview-deployen før merge.
-- [ ] **Verifiser at funksjonen deployes uten `@vercel/node`.** Vercels
-      dokumentasjon sier at hjelpemetodene kommer fra runtime, men ikke
-      uttrykkelig at pakken bare trengs for typer. Samme sjekk på preview
-      dekker dette.
+- [x] **Overfartstiden mot live data.** `/api/departures` på previewen svarer
+      200 med avganger, så Entur kjenner `stopPositionInPattern`. Tidene er
+      identiske med produksjon for alle fire retningene: turene er rene
+      A-til-B-turer, så endringen er en sikring, ikke en rettelse.
+- [x] **Funksjonen kjører uten `@vercel/node`.** Samme kall bekrefter det.
+- [x] **Ukjente parametre avvises.** `?x=1` gir 400.
+- [x] **Boknafjorden tar 24 minutter, ikke 28.** Entur oppgir 24 for alle
+      avganger begge veier. Config sa 28, og det tallet sto i bunnteksten,
+      SEO-tekstene og meta-beskrivelsen. Rettet.
 
 ## Produktvalg å vurdere
 
