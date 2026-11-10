@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  type DirectionKey,
   getDirectionConfig,
   isDirectionKey,
   isRouteKey,
@@ -26,7 +27,7 @@ describe("route config", () => {
       getDirectionConfig("arsvagen_mortavika", "arsvagen_to_mortavika"),
     ).toBeDefined();
     expect(
-      getDirectionConfig("arsvagen_mortavika", "halhjem_to_sandvikvag" as any),
+      getDirectionConfig("arsvagen_mortavika", "halhjem_to_sandvikvag" as DirectionKey),
     ).toBeUndefined();
   });
 });

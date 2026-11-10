@@ -475,7 +475,7 @@ async function fetchEnturStopPlace(
     });
   } catch (error) {
     if (error instanceof Error && error.name === "TimeoutError") {
-      throw new Error(`Entur svarte ikke innen ${ENTUR_TIMEOUT_MS} ms`);
+      throw new Error(`Entur svarte ikke innen ${ENTUR_TIMEOUT_MS} ms`, { cause: error });
     }
     throw error;
   }

@@ -47,11 +47,13 @@ export function useChosenFerry(travelDirection: TravelDirectionKey, now: Date) {
 
   const expired = chosen !== null && chosen.expiresAtMs <= now.getTime();
 
+  // The expired choice is already hidden below; only storage needs clearing,
+  // so a reload does not find it either.
   useEffect(() => {
     if (expired) {
-      choose(null);
+      writeStorage(storageKey(travelDirection), null);
     }
-  }, [expired, choose]);
+  }, [expired, travelDirection]);
 
   return { chosen: expired ? null : (chosen?.departure ?? null), choose };
 }

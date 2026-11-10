@@ -34,24 +34,43 @@ export interface UseDeparturesResult {
   refetch: () => Promise<void>;
 }
 
+/** The cached copy, marked as such, to show while live data loads. */
+function cachedFallback(cacheKey: string): DeparturesResponse | null {
+  const cached = loadDeparturesFromCache(cacheKey);
+  return cached ? { ...cached, isFallback: true } : null;
+}
+
 export function useDepartures({
   routeKey,
   directionKey,
   limit = 6,
   back = 0,
 }: UseDeparturesParams): UseDeparturesResult {
-  const [data, setData] = useState<DeparturesResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isFetching, setIsFetching] = useState(false);
-  const [isFallback, setIsFallback] = useState(false);
-
-  const abortRef = useRef<AbortController | null>(null);
-
   const cacheKey = useMemo(
     () => buildCacheKey(routeKey, directionKey),
     [routeKey, directionKey],
   );
+
+  const [data, setData] = useState<DeparturesResponse | null>(() => cachedFallback(cacheKey));
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(() => data === null);
+  const [isFetching, setIsFetching] = useState(false);
+  const [isFallback, setIsFallback] = useState(() => data !== null);
+
+  // A new route starts over from its own cached copy. Done during render, as
+  // React recommends, so the old route's departures never paint under the new
+  // route's name.
+  const [shownKey, setShownKey] = useState(cacheKey);
+  if (shownKey !== cacheKey) {
+    const fallback = cachedFallback(cacheKey);
+    setShownKey(cacheKey);
+    setData(fallback);
+    setError(null);
+    setIsFallback(fallback !== null);
+    setIsLoading(fallback === null);
+  }
+
+  const abortRef = useRef<AbortController | null>(null);
 
   const fetchDepartures = useCallback(
     async (background = false) => {
@@ -129,18 +148,11 @@ export function useDepartures({
   );
 
   useEffect(() => {
-    const cached = loadDeparturesFromCache(cacheKey);
-    if (cached) {
-      setData({ ...cached, isFallback: true });
-      setIsFallback(true);
-      setIsLoading(false);
-    } else {
-      setData(null);
-      setIsFallback(false);
-      setIsLoading(true);
-    }
-
-    void fetchDepartures(Boolean(cached));
+    // With a cached copy on screen the first fetch can run in the background.
+    // Flagging the request as in flight is the synchronous part; the data
+    // itself comes back from the network, which is what effects are for.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchDepartures(loadDeparturesFromCache(cacheKey) !== null);
 
     // A hidden tab needs no fresh data; the visibility handler below fetches
     // as soon as it is shown again.
