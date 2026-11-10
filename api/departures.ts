@@ -1,4 +1,3 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
   getDirectionConfig,
   isDirectionKey,
@@ -16,6 +15,22 @@ import type {
   DeparturesResponse,
   ServiceAlert,
 } from "../src/types/departures";
+
+/**
+ * The parts of Vercel's Node.js request and response helpers this handler
+ * uses. The runtime provides them; declaring them here saves pulling in
+ * `@vercel/node` and its dependency tree just for two types.
+ */
+export interface ApiRequest {
+  method?: string;
+  query: Record<string, string | string[] | undefined>;
+}
+
+export interface ApiResponse {
+  status(code: number): ApiResponse;
+  json(body: unknown): ApiResponse;
+  setHeader(name: string, value: string): ApiResponse;
+}
 
 const ENTUR_ENDPOINT = "https://api.entur.io/journey-planner/v3/graphql";
 const DEFAULT_LIMIT = 6;
@@ -159,7 +174,7 @@ function parseBackMinutes(rawBack: string | null): number {
   return Math.max(0, Math.min(MAX_BACK_MINUTES, minutes));
 }
 
-export function parseRequest(req: VercelRequest): ParsedRequest | null {
+export function parseRequest(req: ApiRequest): ParsedRequest | null {
   const routeValue = asSingleQueryValue(req.query.route);
   const directionValue = asSingleQueryValue(req.query.direction);
   const limitValue = asSingleQueryValue(req.query.limit);
@@ -335,10 +350,10 @@ export function buildDepartures(
 }
 
 function sendError(
-  res: VercelResponse,
+  res: ApiResponse,
   code: number,
   message: string,
-): VercelResponse {
+): ApiResponse {
   return res.status(code).json({ error: message });
 }
 
@@ -397,9 +412,9 @@ async function fetchEnturStopPlace(
 }
 
 export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse,
-): Promise<VercelResponse | void> {
+  req: ApiRequest,
+  res: ApiResponse,
+): Promise<ApiResponse | void> {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
     return sendError(res, 405, "Kun GET er støttet for dette endepunktet.");

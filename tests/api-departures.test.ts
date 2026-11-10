@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
+  type ApiRequest,
+  type ApiResponse,
   buildDepartures,
   collectAlerts,
   default as handler,
@@ -13,7 +14,7 @@ interface MockResponse<TBody> {
   headers: Record<string, string | string[]>;
   statusCode: number;
   body: TBody | null;
-  res: VercelResponse;
+  res: ApiResponse;
 }
 
 function createMockResponse<TBody>(): MockResponse<TBody> {
@@ -34,7 +35,7 @@ function createMockResponse<TBody>(): MockResponse<TBody> {
       headers[name] = value;
       return this;
     },
-  } as unknown as VercelResponse;
+  } as unknown as ApiResponse;
 
   return {
     headers,
@@ -60,7 +61,7 @@ describe("api departures", () => {
         direction: "arsvagen_to_mortavika",
         limit: "6",
       },
-    } as unknown as VercelRequest;
+    } as unknown as ApiRequest;
 
     const parsed = parseRequest(request);
 
@@ -77,7 +78,7 @@ describe("api departures", () => {
           direction: "arsvagen_to_mortavika",
           limit,
         },
-      } as unknown as VercelRequest)?.limit;
+      } as unknown as ApiRequest)?.limit;
 
     expect(parse("30")).toBe(30);
     expect(parse("500")).toBe(30);
@@ -91,7 +92,7 @@ describe("api departures", () => {
           direction: "halhjem_to_sandvikvag",
           ...(back === undefined ? {} : { back }),
         },
-      } as unknown as VercelRequest)?.backMinutes;
+      } as unknown as ApiRequest)?.backMinutes;
 
     expect(parse()).toBe(0);
     expect(parse("180")).toBe(180);
@@ -106,7 +107,7 @@ describe("api departures", () => {
         route: "nope",
         direction: "still-nope",
       },
-    } as unknown as VercelRequest;
+    } as unknown as ApiRequest;
 
     expect(parseRequest(request)).toBeNull();
   });
@@ -251,7 +252,7 @@ describe("api departures", () => {
         route: "unknown",
         direction: "unknown",
       },
-    } as unknown as VercelRequest;
+    } as unknown as ApiRequest;
 
     const response = createMockResponse<{ error: string }>();
 
@@ -290,7 +291,7 @@ describe("api departures", () => {
         direction: "arsvagen_to_mortavika",
         limit: "6",
       },
-    } as unknown as VercelRequest;
+    } as unknown as ApiRequest;
 
     const response = createMockResponse<{
       departures: Array<{ destination: string }>;
@@ -318,7 +319,7 @@ describe("api departures", () => {
         route: "arsvagen_mortavika",
         direction: "arsvagen_to_mortavika",
       },
-    } as unknown as VercelRequest;
+    } as unknown as ApiRequest;
 
     const response = createMockResponse<{ error: string }>();
 
@@ -348,7 +349,7 @@ describe("api departures", () => {
         route: "arsvagen_mortavika",
         direction: "arsvagen_to_mortavika",
       },
-    } as unknown as VercelRequest;
+    } as unknown as ApiRequest;
 
     const response = createMockResponse<{ error: string }>();
 
