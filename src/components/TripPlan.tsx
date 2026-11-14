@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { CardHead, LoadError } from "@/components/CardParts";
 import { DepartureList } from "@/components/DepartureList";
 import { DRIVE_BETWEEN_SAMBAND_MINUTES, type TravelDirectionRoute } from "@/config/routes";

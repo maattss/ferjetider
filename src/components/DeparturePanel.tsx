@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { useState } from "react";
 import { CardHead, LoadError } from "@/components/CardParts";
 import { CrossingTrack } from "@/components/Ferry";

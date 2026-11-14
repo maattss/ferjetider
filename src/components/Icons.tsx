@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import type { ReactNode } from "react";
 
 /** Line icons drawn on a 24 grid, so they do not depend on the font's glyphs. */

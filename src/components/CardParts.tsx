@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { useRef, type ReactNode } from "react";
 import type { TravelDirectionRoute } from "@/config/routes";
 import type { UseDeparturesResult } from "@/hooks/useDepartures";

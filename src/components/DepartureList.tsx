@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { DELAY_THRESHOLD_MINUTES, DEPARTED_GRACE_MS } from "@/lib/departures";
 import type { Departure } from "@/types/departures";
 import { formatRelativeLabel, minutesUntilDeparture } from "@/lib/time";
