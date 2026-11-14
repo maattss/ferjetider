@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CardHead, LoadError } from "@/components/CardParts";
 import { CrossingTrack } from "@/components/Ferry";
 import { DepartureList } from "@/components/DepartureList";
+import { ChevronDownIcon, ChevronUpIcon } from "@/components/Icons";
 import type { TravelDirectionRoute } from "@/config/routes";
 import type { UseDeparturesResult } from "@/hooks/useDepartures";
 import { countdownParts, DELAY_THRESHOLD_MINUTES } from "@/lib/departures";
@@ -110,6 +111,7 @@ export function DeparturePanel({
     <section className="card">
       <CardHead
         route={route}
+        step="Første ferje"
         query={query}
         action={
           onReset && (
@@ -159,7 +161,8 @@ export function DeparturePanel({
             disabled={shown >= earlier.length}
             onClick={() => setEarlierShown(Math.min(earlier.length, shown + EARLIER_STEP))}
           >
-            ↑ Tidligere
+            <ChevronUpIcon />
+            Tidligere
           </button>
           {shown > 0 && (
             <button
@@ -167,7 +170,8 @@ export function DeparturePanel({
               className="list-nav-button"
               onClick={() => setEarlierShown(0)}
             >
-              Neste ferje ↓
+              Neste ferje
+              <ChevronDownIcon />
             </button>
           )}
         </div>
