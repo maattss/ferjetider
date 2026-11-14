@@ -1,7 +1,9 @@
+import type { JSX } from "react";
 import { useRef, type ReactNode } from "react";
 import type { TravelDirectionRoute } from "@/config/routes";
 import type { UseDeparturesResult } from "@/hooks/useDepartures";
 import type { ServiceAlert } from "@/types/departures";
+import { AlertIcon, ArrowRightIcon } from "@/components/Icons";
 
 /** Live data is the normal case, so only say something when it is not. */
 function DataStatus({ query }: { query: UseDeparturesResult }): JSX.Element | null {
@@ -16,27 +18,35 @@ function DataStatus({ query }: { query: UseDeparturesResult }): JSX.Element | nu
 
 export function CardHead({
   route,
+  step,
   query,
   action,
 }: {
   route: TravelDirectionRoute;
+  /** Where this leg sits in the trip, e.g. "Første ferje". */
+  step: string;
   query: UseDeparturesResult;
   action?: ReactNode;
 }): JSX.Element {
   const alerts = query.data?.alerts ?? [];
   return (
     <header className="card-head">
-      <h2 className="card-route">
-        {/* Real spaces, so a narrow head can wrap after the arrow. */}
-        {route.fromLabel}{" "}
-        <span className="route-arrow" aria-hidden="true">
-          →
-        </span>
-        <span className="sr-only">til</span> {route.toLabel}
-      </h2>
-      <DataStatus query={query} />
-      <AlertInfo alerts={alerts} />
-      {action}
+      <div className="card-title">
+        <p className="card-step">{step}</p>
+        <h2 className="card-route">
+          {/* Real spaces, so a narrow head can wrap after the arrow. */}
+          {route.fromLabel}{" "}
+          <span className="route-arrow">
+            <ArrowRightIcon size={20} />
+          </span>
+          <span className="sr-only">til</span> {route.toLabel}
+        </h2>
+      </div>
+      <div className="card-actions">
+        <DataStatus query={query} />
+        <AlertInfo alerts={alerts} />
+        {action}
+      </div>
     </header>
   );
 }
@@ -61,9 +71,7 @@ function AlertInfo({ alerts }: { alerts: ReadonlyArray<ServiceAlert | string> })
         className="pill-button info-pill"
         onClick={() => dialogRef.current?.showModal()}
       >
-        <span className="info-icon" aria-hidden="true">
-          i
-        </span>
+        <AlertIcon size={20} />
         <span className="info-label">
           Trafikkinfo{items.length > 1 ? ` (${items.length})` : ""}
         </span>

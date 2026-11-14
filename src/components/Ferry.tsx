@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 /** The ferry drawn facing right, 90 wide, from its funnel at y=-3 down to the waterline at y=26. */
 function FerryShape(): JSX.Element {
   return (

@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { SEO_LINKS, type SeoPage } from "@/lib/seo";
 
 /** The page's descriptive text and links; mirrors `renderSeoContentHtml`. */

@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { useEffect } from "react";
 import {
   DRIVE_BETWEEN_SAMBAND_MINUTES,

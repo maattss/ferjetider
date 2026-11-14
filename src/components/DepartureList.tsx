@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { DELAY_THRESHOLD_MINUTES, DEPARTED_GRACE_MS } from "@/lib/departures";
 import type { Departure } from "@/types/departures";
 import { formatRelativeLabel, minutesUntilDeparture } from "@/lib/time";
@@ -83,6 +84,7 @@ export function DepartureList({
           .join(" ");
         const content = (
           <>
+            {onSelect && <span className="row-mark" aria-hidden="true" />}
             <span className="row-time tabular">{d.displayTime}</span>
             <span className="row-tags">
               <RowTags departure={d} isChosen={isChosen} />
@@ -100,13 +102,18 @@ export function DepartureList({
         const gapRow =
           gap && index === gap.afterIndex + 1 ? (
             <li key="gap" className="row-gap" aria-label={`${gap.skipped} avganger utelatt`}>
-              ⋯ {gap.skipped} {gap.skipped === 1 ? "avgang" : "avganger"}
+              <span>
+                {gap.skipped} {gap.skipped === 1 ? "avgang" : "avganger"} til
+              </span>
             </li>
           ) : null;
 
         return [
           gapRow,
-          <li key={`${d.departureTimeIso}-${d.destination}-${d.quay}`}>
+          <li
+            key={`${d.departureTimeIso}-${d.destination}-${d.quay}`}
+            className={isChosen ? "is-chosen" : undefined}
+          >
             {onSelect && !d.cancelled ? (
               <button
                 type="button"

@@ -1,6 +1,7 @@
+import type { JSX } from "react";
 import { CardHead, LoadError } from "@/components/CardParts";
 import { DepartureList } from "@/components/DepartureList";
-import type { TravelDirectionRoute } from "@/config/routes";
+import { DRIVE_BETWEEN_SAMBAND_MINUTES, type TravelDirectionRoute } from "@/config/routes";
 import type { UseDeparturesResult } from "@/hooks/useDepartures";
 import { TIGHT_MARGIN_MS, type TripConnection } from "@/lib/trip";
 import { formatOsloTime } from "@/lib/time";
@@ -39,7 +40,13 @@ export function TripPlan({
   connection,
   now,
 }: TripPlanProps): JSX.Element {
-  const head = <CardHead route={route} query={query} />;
+  const head = (
+    <CardHead
+      route={route}
+      step={`Andre ferje · ca. ${DRIVE_BETWEEN_SAMBAND_MINUTES} min kjøring`}
+      query={query}
+    />
+  );
 
   // No first ferry to plan from yet: show the plain timetable instead.
   if (!connection) {
